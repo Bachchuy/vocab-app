@@ -1,0 +1,34 @@
+HƯỚNG DẪN: frontend/src/App.tsx
+
+Vai trò:
+Component gốc hiện hiển thị dashboard từ vựng, form thêm từ và danh sách lấy từ backend.
+
+Mô hình dữ liệu:
+Word gồm id, english, meaning, example và category.
+
+State:
+- words: danh sách từ vựng lấy từ API.
+- form: dữ liệu người dùng đang nhập.
+- message: thông báo thành công hoặc lỗi.
+
+Hàm chính:
+- fetchWords: GET http://localhost:3000/words rồi cập nhật words.
+- handleChange: cập nhật một trường trong form.
+- handleSubmit: POST form lên backend, reset form và tải lại danh sách.
+
+React concepts cần học:
+- useState: quản lý state.
+- useEffect: gọi fetchWords khi component mount.
+- map: render nhiều word card.
+- controlled input: value và onChange được điều khiển bởi state.
+
+Luồng thêm từ:
+Người dùng nhập form -> handleChange -> handleSubmit -> POST API -> fetchWords -> UI cập nhật.
+
+Hướng OOP tiếp theo:
+Tách Word type vào types/Word.ts, API vào services/WordApiService.ts, form và card thành component riêng. App.tsx chỉ điều phối màn hình.
+
+Lỗi thường gặp:
+- Backend chưa chạy: fetch bị lỗi.
+- Sai port 3000: không lấy được dữ liệu.
+- API trả dữ liệu khác type Word: UI hiển thị sai.

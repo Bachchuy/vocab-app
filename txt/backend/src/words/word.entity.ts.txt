@@ -1,0 +1,23 @@
+HƯỚNG DẪN: backend/src/words/word.entity.ts
+
+Vai trò:
+Mô hình hóa một từ vựng bằng class Word.
+
+Constructor nhận:
+- id: định danh.
+- english: từ tiếng Anh.
+- meaning: nghĩa tiếng Việt.
+- example: câu ví dụ.
+- category: nhóm từ.
+
+OOP:
+- Class gom dữ liệu thành một object có cấu trúc.
+- Constructor bảo đảm object được tạo với các giá trị ban đầu.
+- Có thể thêm method như isComplete(), updateMeaning() hoặc toResponse() sau này.
+
+Phân biệt entity và DTO:
+- Entity là object/domain model dùng trong logic.
+- DTO mô tả dữ liệu request từ bên ngoài.
+
+Khi dùng ORM:
+Class này có thể được thay bằng Prisma model hoặc domain entity riêng tùy kiến trúc.

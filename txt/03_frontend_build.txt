@@ -1,0 +1,46 @@
+BƯỚC 3: BUILD VÀ CHẠY FRONTEND HIỆN TẠI
+
+1. Vị trí
+cd D:\code\vocab-app\frontend
+
+2. Cài package
+npm install
+
+3. Chạy development server
+npm run dev
+
+Mở http://localhost:5173.
+
+4. Cấu trúc thực tế
+frontend/
+  index.html
+  package.json
+  vite.config.ts
+  tsconfig.json
+  src/
+    main.tsx
+    App.tsx
+    index.css
+
+5. Luồng giao diện
+main.tsx render App vào #root.
+App.tsx gọi GET http://localhost:3000/words khi mount.
+Form gửi POST /words.
+Danh sách words được render bằng map.
+
+6. Build kiểm tra lỗi
+npm run build
+
+Lệnh này chạy tsc -b trước, sau đó vite build. Nếu terminal báo lỗi, ưu tiên sửa lỗi đó thay vì chỉ nhìn màu đỏ trong Explorer.
+
+7. Nếu trang trắng hoặc 404
+- Kiểm tra frontend/index.html tồn tại.
+- Kiểm tra script trỏ tới /src/main.tsx.
+- Kiểm tra frontend server đang chạy.
+- Reload browser.
+
+8. Nếu không tải được dữ liệu
+Backend phải chạy ở http://localhost:3000. Kiểm tra trực tiếp http://localhost:3000/words.
+
+9. Hướng mở rộng
+Tách App.tsx thành WordForm, WordList và WordApiService để giảm trách nhiệm của component gốc.

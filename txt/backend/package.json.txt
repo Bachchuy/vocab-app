@@ -1,0 +1,26 @@
+HƯỚNG DẪN: backend/package.json
+
+Vai trò:
+Khai báo package và lệnh chạy NestJS backend.
+
+Scripts:
+- npm run build: compile NestJS vào dist.
+- npm run start: chạy backend.
+- npm run start:dev: chạy watch mode, tự compile khi sửa code.
+- npm run start:prod: chạy file dist/main sau khi build.
+
+Dependencies chính:
+- @nestjs/common: decorator và API cơ bản.
+- @nestjs/core: engine NestJS.
+- @nestjs/platform-express: HTTP adapter.
+- reflect-metadata: metadata cho decorators và dependency injection.
+- rxjs: reactive utilities của NestJS.
+
+DevDependencies:
+Công cụ CLI, TypeScript, type Node và ts-node.
+
+Quy trình:
+cd backend -> npm install -> npm run start:dev
+
+Lưu ý:
+package-lock.json được npm sinh tự động; không viết tay file đó.

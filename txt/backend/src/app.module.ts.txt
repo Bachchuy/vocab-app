@@ -1,0 +1,21 @@
+HƯỚNG DẪN: backend/src/app.module.ts
+
+Vai trò:
+Module gốc của NestJS, nơi đăng ký các feature module của toàn backend.
+
+Hiện tại:
+AppModule import WordsModule, vì vậy các route trong WordsModule được kích hoạt.
+
+Nguyên tắc module:
+- imports: module phụ thuộc.
+- controllers: controller thuộc module.
+- providers: service/repository được Nest DI quản lý.
+- exports: provider cho module khác dùng.
+
+Khi thêm feature:
+Tạo module mới như AuthModule, UsersModule hoặc DecksModule, sau đó thêm vào imports của AppModule.
+
+OOP và DI:
+Module là composition root ở mức ứng dụng. Nest đọc metadata decorator để tạo object và inject dependency.
+
+Không đặt CRUD trực tiếp trong AppModule; file này chỉ lắp ráp các module.

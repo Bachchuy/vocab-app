@@ -1,0 +1,41 @@
+BƯỚC 1: CÀI ĐẶT NODE.JS
+
+Mục tiêu:
+Cài Node.js để npm có thể cài package, chạy Vite và chạy NestJS.
+
+1. Cài trên Windows
+Mở PowerShell:
+winget install --id OpenJS.NodeJS.LTS --source winget -e
+
+2. Kiểm tra
+Đóng terminal cũ, mở terminal mới rồi chạy:
+node -v
+npm -v
+
+Project hiện đã được kiểm tra với Node.js v24.19.0 và npm 11.17.0.
+
+3. Khi node hoặc npm không được nhận diện
+Node thường nằm ở C:\Program Files\nodejs.
+Trong PowerShell hiện tại, tạm thêm PATH:
+$env:Path += ";C:\Program Files\nodejs"
+node -v
+npm -v
+
+Nếu cách trên hoạt động, mở terminal mới để PATH được nhận tự động.
+
+4. Node.js được dùng ở đâu
+- frontend: npm install, npm run dev, npm run build.
+- backend: npm install, npm run start:dev, npm run build.
+
+5. Kiểm tra sẵn sàng
+Từ thư mục project, hai lệnh sau phải chạy được:
+cd frontend
+npm run build
+
+cd ..\backend
+npm run build
+
+6. Lỗi thường gặp
+- Chạy npm ở sai thư mục: phải đứng trong frontend hoặc backend.
+- Terminal mở trước khi cài Node: đóng và mở lại.
+- Dùng cd /d trong PowerShell: dùng Set-Location hoặc cd D:\code\vocab-app.

@@ -1,0 +1,53 @@
+BƯỚC 4: BUILD VÀ CHẠY BACKEND HIỆN TẠI
+
+1. Vị trí
+cd D:\code\vocab-app\backend
+
+2. Cài package
+npm install
+
+3. Chạy development server
+npm run start:dev
+
+Backend chạy ở:
+http://localhost:3000
+
+4. Cấu trúc thực tế
+src/
+  main.ts
+  app.module.ts
+  words/
+    word.entity.ts
+    words.module.ts
+    words.controller.ts
+    words.service.ts
+    words.repository.ts
+    dto/
+      create-word.dto.ts
+      update-word.dto.ts
+
+5. API hiện có
+- GET /words
+- GET /words/:id
+- POST /words
+- PATCH /words/:id
+- DELETE /words/:id
+
+6. Kiểm tra nhanh
+Mở trình duyệt tại http://localhost:3000/words. Nếu thấy JSON danh sách words, backend đã chạy.
+
+7. Build kiểm tra TypeScript
+npm run build
+
+Kết quả đúng là Nest compile không có error và tạo thư mục dist.
+
+8. Database
+Chưa cần database. Repository đang dùng mảng trong bộ nhớ để tập trung học module, controller, service, repository và dependency injection. Dữ liệu mất khi restart server.
+
+9. Khi nào thêm database
+Khi CRUD in-memory ổn định, thêm Prisma/PostgreSQL. Thay tầng repository trước, không đưa truy vấn database vào controller.
+
+10. Lỗi thường gặp
+- Port 3000 đang bị chiếm: dừng process cũ hoặc đổi PORT.
+- Frontend bị CORS: kiểm tra app.enableCors trong main.ts.
+- File đỏ: chạy npm run build trong backend để lấy lỗi thật.

@@ -1,0 +1,23 @@
+HƯỚNG DẪN: backend/src/words/words.service.ts
+
+Vai trò:
+Chứa business logic của từ vựng và điều phối repository.
+
+Dependency injection:
+constructor(private readonly wordsRepository: WordsRepository) {}
+Nest tự tạo WordsRepository và truyền vào service.
+
+Các trách nhiệm:
+- findAll: lấy danh sách.
+- findOne: tìm một từ, ném NotFoundException nếu không có.
+- create: trim và kiểm tra english/meaning trước khi lưu.
+- update: cập nhật và kiểm tra id.
+- delete: xóa và kiểm tra id.
+
+Tại sao service cần tách riêng:
+- Controller không bị phình to.
+- Business logic có thể test độc lập.
+- Có thể tái sử dụng từ command khác ngoài HTTP.
+
+Cải tiến tương lai:
+Dùng DTO validation thay cho Error thủ công, thêm interface repository và transaction khi có database.

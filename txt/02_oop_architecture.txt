@@ -1,0 +1,33 @@
+BƯỚC 2: KIẾN TRÚC OOP HIỆN TẠI
+
+Mục tiêu:
+Học OOP qua một feature chạy thật, đồng thời giữ code dễ thay đổi và bảo trì.
+
+1. Luồng hiện tại
+Browser -> frontend App.tsx -> HTTP fetch -> backend WordsController -> WordsService -> WordsRepository.
+
+2. Trách nhiệm từng lớp
+- Word: domain model mô tả một từ.
+- DTO: shape của dữ liệu request.
+- Controller: ánh xạ HTTP endpoint.
+- Service: kiểm tra và xử lý nghiệp vụ.
+- Repository: lưu và truy vấn dữ liệu.
+- Module: đăng ký dependency với NestJS.
+
+3. OOP đang sử dụng
+- Encapsulation: repository giữ mảng words private.
+- Dependency Injection: Nest inject WordsRepository vào WordsService.
+- Abstraction theo tầng: service không cần biết controller gọi từ đâu.
+- Single Responsibility: mỗi lớp có một vai trò chính.
+
+4. Frontend và OOP
+React component không phải class OOP truyền thống trong code hiện tại; App đang là function component dùng hooks. Để học sâu hơn, sau này tách API thành WordApiService class, model/type thành file riêng và UI thành WordForm/WordList.
+
+5. Không lạm dụng inheritance
+Project này ưu tiên composition và dependency injection. Chỉ dùng inheritance khi có quan hệ “is-a” rõ ràng; không tạo class cha chỉ để làm code phức tạp hơn.
+
+6. Database chưa cần ở bước này
+WordsRepository đang dùng mảng in-memory. Khi đổi sang PostgreSQL, tạo implementation repository mới và giữ service/controller ổn định.
+
+7. Quy tắc mở rộng
+Mỗi feature mới nên có module riêng. Không đưa logic words vào AppModule hoặc main.ts.

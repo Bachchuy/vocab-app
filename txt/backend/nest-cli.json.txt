@@ -1,0 +1,21 @@
+HƯỚNG DẪN: backend/nest-cli.json
+
+Vai trò:
+Cấu hình Nest CLI, công cụ tạo module/controller/service và build backend.
+
+Các field:
+- $schema: schema giúp VS Code gợi ý và kiểm tra JSON.
+- collection: bộ schematics Nest dùng khi generate code.
+- sourceRoot: thư mục source chính, hiện là src.
+
+Lệnh liên quan:
+- npx nest generate module words
+- npx nest generate controller words --no-spec
+- npx nest generate service words --no-spec
+- npm run build
+
+Quan hệ với kiến trúc:
+Nest CLI tạo cấu trúc module-based. Mỗi feature như words có module, controller, service và repository riêng.
+
+Khi sửa:
+Chỉ sửa khi thay đổi cấu trúc source hoặc cần cấu hình CLI đặc biệt. Không đặt nghiệp vụ vào đây.

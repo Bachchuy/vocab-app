@@ -1,0 +1,22 @@
+HƯỚNG DẪN: backend/src/main.ts
+
+Vai trò:
+Entry point khởi động HTTP server NestJS.
+
+Luồng chạy:
+1. NestFactory.create tạo Nest application.
+2. AppModule được nạp làm module gốc.
+3. enableCors cho phép frontend ở port 5173 gọi backend port 3000.
+4. app.listen mở server.
+5. PORT lấy từ biến môi trường, mặc định 3000.
+
+Tại sao cần CORS:
+Frontend và backend chạy khác origin vì khác port. Nếu không enableCors, browser có thể chặn request.
+
+Khi mở rộng:
+- bật ValidationPipe global.
+- thêm prefix api.
+- thêm logger.
+- đọc config từ ConfigService.
+
+Không đặt logic từ vựng ở đây. main.ts chỉ bootstrap và cấu hình toàn app.

@@ -1,0 +1,26 @@
+HƯỚNG DẪN: frontend/index.html
+
+Vai trò:
+Đây là HTML entry point của Vite. Trình duyệt tải file này trước, sau đó Vite nạp module React từ src/main.tsx.
+
+Cấu trúc chính:
+- <!doctype html>: báo cho trình duyệt dùng HTML5.
+- <html lang="en">: khai báo ngôn ngữ trang.
+- <meta charset="UTF-8">: hỗ trợ Unicode.
+- viewport: giúp giao diện responsive trên điện thoại.
+- <title>: tiêu đề tab trình duyệt.
+- <div id="root"></div>: container để React render ứng dụng.
+- <script type="module" src="/src/main.tsx"></script>: điểm nối tới React.
+
+Luồng chạy:
+Browser -> index.html -> main.tsx -> App.tsx -> index.css
+
+Khi sửa:
+- Đổi tiêu đề tab ở <title>.
+- Thêm favicon trong <head>.
+- Không đặt business logic vào file này.
+
+Lỗi thường gặp:
+- Sai id root: React không tìm thấy nơi render.
+- Sai đường dẫn main.tsx: trang có thể trắng.
+- Quên type="module": Vite không xử lý module đúng.

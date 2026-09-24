@@ -1,0 +1,21 @@
+HƯỚNG DẪN: frontend/tsconfig.json
+
+Vai trò:
+Định nghĩa cách TypeScript kiểm tra code frontend.
+
+Các option quan trọng:
+- target ES2020: version JavaScript mục tiêu.
+- lib DOM, ES2020: các API trình duyệt và JavaScript được nhận diện.
+- strict true: kiểm tra kiểu chặt chẽ.
+- module ESNext: dùng ES modules cho Vite.
+- moduleResolution Node: cách tìm import/package.
+- jsx react-jsx: xử lý JSX/TSX theo React hiện đại.
+- noEmit true: TypeScript chỉ check type; Vite build code.
+- include src: chỉ kiểm tra source frontend.
+
+Khi thấy file đỏ:
+1. Chạy npm run build trong frontend.
+2. Đọc lỗi TypeScript thật trong terminal.
+3. Restart TypeScript server nếu VS Code chưa refresh.
+
+Không tắt strict chỉ để che lỗi; hãy sửa đúng type.

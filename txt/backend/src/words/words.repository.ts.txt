@@ -1,0 +1,20 @@
+HƯỚNG DẪN: backend/src/words/words.repository.ts
+
+Vai trò:
+Tầng truy cập dữ liệu cho Word. Hiện tại dữ liệu được lưu trong mảng private nên chỉ tồn tại khi server đang chạy.
+
+Các method:
+- findAll: trả bản sao danh sách.
+- findById: tìm theo id.
+- create: tạo Word và tăng nextId.
+- update: cập nhật object đã có.
+- delete: xóa theo index.
+
+Tại sao trả [...this.words]:
+Không cho caller sửa trực tiếp mảng nội bộ. Đây là encapsulation.
+
+Database:
+Chưa cần database ở giai đoạn học OOP. Sau này tạo repository khác dùng Prisma/PostgreSQL, còn service giữ API gần như tương tự.
+
+Điểm cần nhớ:
+Dữ liệu in-memory sẽ mất khi restart server. Đây là giới hạn có chủ ý của prototype hiện tại.

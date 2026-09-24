@@ -1,0 +1,24 @@
+HƯỚNG DẪN: frontend/src/index.css
+
+Vai trò:
+Chứa style toàn cục cho frontend.
+
+Các khu vực chính:
+- :root: font, màu mặc định và tối ưu render chữ.
+- *: box-sizing để kích thước dễ dự đoán.
+- body: margin, chiều cao tối thiểu và background.
+- .app-shell: bố cục căn giữa màn hình.
+- .card: khung dashboard.
+- .word-form: layout form responsive.
+- .word-grid: grid hiển thị danh sách từ.
+- .word-item: style từng từ vựng.
+
+Responsive:
+Các grid dùng repeat(auto-fit, minmax(...)) để tự xuống dòng khi màn hình nhỏ.
+
+Khi thêm component:
+- Tạo class có tên rõ nghĩa.
+- Tránh style bằng inline nếu dùng lặp lại.
+- Giữ màu và spacing nhất quán.
+
+File này không xử lý dữ liệu hoặc gọi API; nó chỉ chịu trách nhiệm trình bày.

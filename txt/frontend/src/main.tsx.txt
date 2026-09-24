@@ -1,0 +1,22 @@
+HƯỚNG DẪN: frontend/src/main.tsx
+
+Vai trò:
+Đây là entry point của React. File này khởi động React và render App vào phần tử #root trong index.html.
+
+Từng phần:
+- import React: dùng StrictMode.
+- import ReactDOM: cung cấp createRoot.
+- import App: component gốc.
+- import './index.css': nạp CSS toàn cục.
+- document.getElementById('root'): lấy container HTML.
+- ReactDOM.createRoot(...).render(...): render app.
+- React.StrictMode: hỗ trợ phát hiện một số vấn đề khi development.
+
+Luồng:
+index.html tạo #root -> main.tsx tìm #root -> main.tsx render App -> App hiển thị giao diện.
+
+Khi sửa:
+- Đổi component gốc nếu muốn bắt đầu app từ component khác.
+- Thêm provider global như Router hoặc QueryClientProvider ở đây.
+
+Không đặt business logic CRUD vào main.tsx; hãy để trong component/service tương ứng.

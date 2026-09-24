@@ -1,0 +1,25 @@
+HƯỚNG DẪN: backend/src/words/dto/create-word.dto.ts
+
+Vai trò:
+Mô tả dữ liệu cần nhận khi tạo một Word.
+
+Các field:
+- english: bắt buộc về mặt nghiệp vụ.
+- meaning: bắt buộc về mặt nghiệp vụ.
+- example: tùy chọn.
+- category: tùy chọn.
+
+Hiện trạng:
+DTO mới mô tả shape TypeScript. Để validate tự động, cài class-validator và thêm decorators như @IsString, @IsNotEmpty, @IsOptional.
+
+Ví dụ hướng cải tiến:
+@IsString()
+@IsNotEmpty()
+english: string;
+
+Sau đó bật ValidationPipe trong main.ts.
+
+Lợi ích DTO:
+- Chặn input không hợp lệ ở boundary API.
+- Tài liệu hóa request.
+- Tách dữ liệu HTTP khỏi entity nội bộ.

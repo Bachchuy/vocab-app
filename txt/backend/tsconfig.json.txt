@@ -1,0 +1,20 @@
+HƯỚNG DẪN: backend/tsconfig.json
+
+Vai trò:
+Quy định TypeScript compile backend NestJS.
+
+Các option quan trọng:
+- module commonjs: module output tương thích cấu hình backend hiện tại.
+- target ES2021: JavaScript version mục tiêu.
+- experimentalDecorators true: cho phép @Module, @Controller, @Injectable.
+- emitDecoratorMetadata true: hỗ trợ metadata cho dependency injection.
+- outDir ./dist: nơi lưu JavaScript sau build.
+- baseUrl ./: gốc resolve import.
+- strict true: kiểm tra kiểu chặt.
+- skipLibCheck true: bỏ qua kiểm tra declaration của dependency.
+- include src/**/*.ts: phạm vi source backend.
+
+Khi lỗi đỏ:
+Chạy npm run build trong backend để xem lỗi compiler thật, sau đó sửa code hoặc cấu hình đúng nguyên nhân.
+
+Không nên tắt decorators hoặc strict vì NestJS và chất lượng type sẽ bị ảnh hưởng.

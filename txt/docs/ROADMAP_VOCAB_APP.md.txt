@@ -1,0 +1,19 @@
+HƯỚNG DẪN: docs/ROADMAP_VOCAB_APP.md
+
+Đây là roadmap sản phẩm và lộ trình kỹ thuật của Vocab App.
+
+Tài liệu mô tả:
+- mục tiêu sản phẩm
+- công nghệ frontend/backend/database/AI
+- kiến trúc modular monolith
+- các giai đoạn phát triển
+- Definition of Done cho từng feature
+
+Cách sử dụng:
+1. Chọn một feature nhỏ.
+2. Xác định kiến thức cần học.
+3. Code một vertical slice từ UI tới API.
+4. Kiểm tra build và behavior.
+5. Ghi lại bài học và cập nhật roadmap.
+
+Không nên làm tất cả cùng lúc. Ưu tiên feature có thể chạy được, sau đó mở rộng từng lớp.

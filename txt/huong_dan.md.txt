@@ -1,0 +1,23 @@
+HƯỚNG DẪN: huong_dan.md
+
+Đây là tài liệu định hướng tổng thể của Vocab App.
+
+Mục tiêu:
+Xây nền tảng học từ vựng có flashcard, quiz, review, thống kê, authentication và AI trong các giai đoạn sau.
+
+Cách học:
+HỌC -> CODE -> GẶP VẤN ĐỀ -> NGHIÊN CỨU -> SỬA -> TEST -> GHI LẠI
+
+Kiến trúc:
+Frontend React + TypeScript giao tiếp HTTP/JSON với backend NestJS. Backend được chia module và service/repository theo hướng OOP.
+
+Lộ trình nên theo:
+1. CRUD words với in-memory repository.
+2. Validation DTO.
+3. Tách component và API service frontend.
+4. PostgreSQL + Prisma.
+5. Authentication.
+6. Flashcard, quiz và spaced repetition.
+7. AI generation và recommendation.
+
+Đọc tài liệu mirror trong txt theo đường dẫn tương ứng với file thật.

@@ -1,0 +1,27 @@
+HƯỚNG DẪN: frontend/package.json
+
+Vai trò:
+Khai báo tên frontend, scripts chạy project và các package React/Vite/TypeScript.
+
+Scripts hiện tại:
+- npm run dev: chạy Vite development server, thường ở port 5173.
+- npm run build: chạy TypeScript check rồi build production.
+- npm run preview: xem thử bản build production.
+
+Dependencies:
+- react: xây dựng component và state.
+- react-dom: gắn React vào DOM của trình duyệt.
+
+DevDependencies:
+- typescript: kiểm tra kiểu và biên dịch TypeScript.
+- vite: dev server và bundler.
+- @vitejs/plugin-react: cho Vite xử lý JSX/TSX.
+- @types/*: type definitions cho TypeScript.
+
+Cách thêm package:
+1. Đứng trong thư mục frontend.
+2. Chạy npm install ten-package.
+3. npm tự cập nhật package.json và package-lock.json.
+
+Nguyên tắc:
+Không viết code ứng dụng trong package.json. File này chỉ mô tả project và công cụ phụ thuộc.

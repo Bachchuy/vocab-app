@@ -1,0 +1,24 @@
+HƯỚNG DẪN: backend/src/words/words.controller.ts
+
+Vai trò:
+Định nghĩa HTTP API cho vocabulary.
+
+Các endpoint:
+- GET /words: lấy toàn bộ từ.
+- GET /words/:id: lấy một từ.
+- POST /words: tạo từ.
+- PATCH /words/:id: cập nhật từ.
+- DELETE /words/:id: xóa từ.
+
+Decorator:
+- @Controller('words'): prefix route.
+- @Get, @Post, @Patch, @Delete: ánh xạ HTTP method.
+- @Param: đọc id trong URL.
+- @Body: đọc JSON body.
+- ParseIntPipe: chuyển và kiểm tra id là số.
+
+Nguyên tắc:
+Controller mỏng. Nó nhận request, gọi WordsService và trả kết quả; không tự thao tác mảng dữ liệu.
+
+Khi dùng database:
+Controller gần như không đổi, vì chi tiết lưu trữ nằm ở service/repository.
