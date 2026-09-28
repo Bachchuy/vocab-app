@@ -23,8 +23,40 @@ model Word {
   dateAdded             DateTime @default(now())
   createdAt             DateTime @default(now())
   updatedAt             DateTime @updatedAt
+  reviewState           ReviewState?
+  reviewHistory         ReviewHistory[]
 
   @@index([english])
   @@index([lemma])
   @@index([category])
+}
+
+model ReviewState {
+  id              Int      @id @default(autoincrement())
+  wordId          Int      @unique
+  status          String   @default("new")
+  dueAt           DateTime @default(now())
+  lastReviewedAt  DateTime?
+  reviewCount     Int      @default(0)
+  correctCount    Int      @default(0)
+  incorrectCount  Int      @default(0)
+  intervalDays    Int      @default(0)
+  word            Word     @relation(fields: [wordId], references: [id], onDelete: Cascade)
+  createdAt       DateTime @default(now())
+  updatedAt       DateTime @updatedAt
+
+  @@index([dueAt])
+  @@index([status])
+}
+
+model ReviewHistory {
+  id           Int      @id @default(autoincrement())
+  wordId       Int
+  rating       String
+  correct      Boolean
+  reviewedAt   DateTime @default(now())
+  responseMs   Int?
+  word         Word     @relation(fields: [wordId], references: [id], onDelete: Cascade)
+
+  @@index([wordId, reviewedAt])
 }

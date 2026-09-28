@@ -3,11 +3,12 @@ import { Module } from '@nestjs/common';
 // Import module quản lý từ vựng.
 import { WordsModule } from './words/words.module';
 import { PrismaService } from './prisma.service';
+import { ReviewsModule } from './reviews/reviews.module';
 
 // Khai báo module gốc của ứng dụng.
 @Module({
   // Đăng ký các module con mà ứng dụng cần sử dụng.
-  imports: [WordsModule],
+  imports: [WordsModule, ReviewsModule],
   providers: [PrismaService],
   exports: [PrismaService],
 })

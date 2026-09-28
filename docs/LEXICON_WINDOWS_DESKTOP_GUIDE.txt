@@ -1,0 +1,186 @@
+LEXICON WINDOWS DESKTOP DIRECTION
+=================================
+
+Purpose
+-------
+Lexicon is a personal vocabulary dictionary. The user discovers words elsewhere,
+saves context and notes here, then reviews those words offline.
+
+Chosen architecture
+-------------------
+Desktop shell: Tauri 2
+UI: React + TypeScript + Vite
+Local database: SQLite through the Tauri SQL plugin
+Cloud/server layer: NestJS + Prisma, optional for sync and future multi-device support
+
+Why Tauri
+---------
+Tauri is the preferred Windows shell for this project because it is lighter than
+Electron and does not require shipping a complete Chromium/Node runtime. The
+existing React frontend is reusable. NestJS remains useful as a future cloud API,
+but the desktop application should not require a localhost NestJS process forever.
+
+Current repository state
+------------------------
+- frontend/: React/Vite application.
+- frontend/src-tauri/: Tauri 2 desktop shell scaffold.
+- backend/: NestJS API with Prisma and SQLite.
+- backend/prisma/schema.prisma: persistent vocabulary and review schema.
+- backend/prisma/dev.db: development database created by Prisma.
+- backend/data/words.json: legacy seed/input file; do not use as the production source.
+- docs/: product roadmap and this Windows direction document.
+
+What is already working
+-----------------------
+- Vocabulary CRUD through NestJS.
+- Duplicate detection.
+- Vocabulary metadata: lemma, language pair, part of speech and tags.
+- SQLite database and Prisma migrations.
+- ReviewState and ReviewHistory tables.
+- Simple review scheduler.
+- Review API: /reviews/due, /reviews/states, /reviews/:wordId and history.
+- Tauri shell with SQLite plugin and desktop build scripts.
+- Frontend storage adapter: local SQLite in Tauri, NestJS HTTP on the web.
+- Local vocabulary CRUD and review writes are routed through that adapter.
+
+Important current limitation
+----------------------------
+The first usable version is the local web version. The Tauri shell and storage
+adapter are in place, and an NSIS installer has been built on the development
+machine. A clean-machine installation and first launch still need verification.
+The web development mode continues to use NestJS HTTP. During web development,
+run the backend separately:
+
+  cd backend
+  npm run start:prod
+
+Then run the desktop shell from another terminal:
+
+  cd frontend
+  npm run desktop:dev
+
+Desktop CRUD and review operations already use the local SQLite adapter. The
+first launch creates its local tables without sample words. Vocabulary entries
+can be imported and exported as Lexicon JSON; review history and scheduling are
+not included in that transfer file. Backup/restore and clean-machine testing
+remain to be completed.
+
+Target production architecture
+------------------------------
+
+  React UI
+      |
+      v
+  TypeScript application services
+      |
+      +-- Desktop adapter: Tauri commands / local SQLite
+      |
+      +-- Web adapter: NestJS HTTP API (optional)
+
+Production database location on Windows:
+
+  %APPDATA%\Lexicon\Lexicon.sqlite
+
+Never store user data under Program Files or beside the installed executable.
+The database must survive app updates and must not require administrator rights.
+
+Target local database model
+---------------------------
+The existing Prisma schema is the server/cloud schema. The desktop SQLite schema
+should eventually contain the same core concepts:
+
+- vocabulary_entries
+- senses
+- examples
+- tags
+- collections
+- review_states
+- review_history
+- settings
+
+Do not duplicate an entry merely because it belongs to multiple collections.
+Do not put review scheduling inside React components.
+
+Implementation order
+--------------------
+1. Use and stabilize V1 web local mode.
+2. Add first-run local schema migration and optional seed/import for Tauri.
+3. Store explicit database backups under the user data directory.
+4. Add JSON/CSV import and export.
+5. Test the Tauri binary on a clean Windows machine.
+6. Keep NestJS as an optional sync/API layer.
+
+Development commands
+--------------------
+Backend:
+  cd backend
+  npm run db:status
+  npm run db:migrate
+  npm run build
+  npm run start:dev
+
+Frontend web:
+  cd frontend
+  npm run dev
+  npm run build
+
+Tauri desktop development:
+  cd frontend
+  npm run desktop:dev
+
+Tauri production compilation without installer:
+  cd frontend
+  npm run desktop:build
+
+Build the NSIS Windows installer:
+  cd frontend
+  npm run desktop:installer
+
+Windows prerequisites
+---------------------
+- Node.js LTS
+- Rust stable with the MSVC toolchain
+- Microsoft C++ Build Tools
+- WebView2 Runtime
+- Windows SDK
+
+If Rust cannot find `link.exe`, install Visual Studio Build Tools 2022 with:
+
+  Desktop development with C++
+  MSVC v143 build tools
+  Windows 10/11 SDK
+
+Then open a new PowerShell and run:
+
+  cd frontend
+  npm run desktop:build
+
+If Cargo still cannot find `link.exe`, run the build from "x64 Native Tools
+Command Prompt for VS 2022" or start a PowerShell from that developer prompt.
+
+Data safety rules
+-----------------
+- Do not commit .env files or SQLite database files.
+- Run database migrations before opening the app.
+- Back up the local database before destructive migrations.
+- Export JSON/CSV must remain available even if cloud sync is added.
+- AI and dictionary APIs are optional and must never block local vocabulary use.
+
+Definition of done for standalone Windows app
+---------------------------------------------
+- Lexicon opens from one installer shortcut.
+- No terminal is required.
+- No NestJS process is required for core vocabulary/review functions.
+- Data persists after restart and app update.
+- Search, detail, add, edit, delete and review work offline.
+- Import/export and backup/restore are tested.
+- A clean Windows machine can install and run the app.
+
+Guidance for future AI assistants
+---------------------------------
+Do not rewrite the project or replace the stack casually. First inspect this file,
+the product roadmap and current package files. Keep React/Vite for the UI and use
+Tauri for the Windows shell. Keep NestJS/Prisma as the server/sync layer unless a
+specific task is moving a function to the local Tauri database. Prefer small
+migrations, build after each milestone, and report any remaining limitation
+instead of pretending the desktop app is already fully offline.

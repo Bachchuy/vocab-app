@@ -1,0 +1,146 @@
+LEXICON V1 - QUICK START FOR WINDOWS
+====================================
+
+What V1 is
+----------
+V1 is a usable local personal vocabulary dictionary running in a browser.
+It uses a real SQLite database through the NestJS backend. Data remains after
+restarting the backend because it is stored in the local Prisma SQLite database.
+The Tauri desktop shell is a separate prototype with its own local database;
+it does not yet import or sync the browser/backend database.
+
+V1 includes
+-----------
+- Add vocabulary entries.
+- Edit vocabulary entries.
+- Delete vocabulary entries.
+- Prevent duplicate spelling.
+- Save meaning, example, source, notes and category.
+- Search across word, meaning, example, source and notes.
+- Filter and sort the personal dictionary.
+- Open a vocabulary detail page.
+- Review saved words with a simple spaced-repetition scheduler.
+- Persist review state and review history in SQLite.
+- Import and export vocabulary entries as Lexicon JSON files.
+- Use the same REST API from the React frontend.
+
+Requirements
+------------
+- Windows 10 or Windows 11.
+- Node.js LTS.
+- npm.
+
+Start V1 manually
+-----------------
+Open PowerShell window 1:
+
+  cd D:\code\vocab-app\backend
+  npm install
+  npm run db:generate
+  npm run db:migrate
+  npm run db:seed
+  npm run start:dev
+
+Open PowerShell window 2:
+
+  cd D:\code\vocab-app\frontend
+  npm install
+  npm run dev
+
+Open this address in the browser:
+
+  http://localhost:5173
+
+The backend API is:
+
+  http://localhost:3000
+
+Build a Windows installer
+-------------------------
+From the frontend directory, run:
+
+  npm run desktop:installer
+
+The NSIS installer is written to:
+
+  frontend\src-tauri\target\release\bundle\nsis\Lexicon_0.1.0_x64-setup.exe
+
+The desktop app stores vocabulary in its own local SQLite database. It does
+not currently sync with the browser/backend database. JSON transfer currently
+exports and imports vocabulary entries; review scheduling stays in each app's
+database.
+
+Start V1 with one script
+------------------------
+From the repository root:
+
+  powershell -ExecutionPolicy Bypass -File .\start-v1.ps1
+
+The script installs missing dependencies, prepares the Prisma database, loads
+the existing starter vocabulary idempotently, and opens two PowerShell windows.
+Keep both windows open while using V1. To stop V1, close those two windows.
+
+Database
+--------
+Development database:
+
+  backend\prisma\dev.db
+
+Do not delete this file if you want to keep local vocabulary data.
+Do not commit it to Git.
+
+Useful checks
+-------------
+
+  cd backend
+  npm run db:status
+  npm run build
+
+  cd ..\frontend
+  npm run build
+
+Review API
+----------
+
+  GET  http://localhost:3000/reviews/due
+  GET  http://localhost:3000/reviews/states
+  GET  http://localhost:3000/reviews/:wordId/history
+  POST http://localhost:3000/reviews/:wordId
+
+Example review body:
+
+  {"rating":"easy"}
+
+What V1 does not include yet
+----------------------------
+- Import/export of review history (JSON transfer currently contains vocabulary entries).
+- Authentication and multiple users.
+- Collections.
+- Multiple senses per word.
+- Dictionary lookup and pronunciation.
+- CSV/JSON import and export.
+- Cloud sync.
+- AI features.
+- Automated tests.
+
+Recommended next milestones
+----------------------------
+1. Add automated backend and scheduler tests.
+2. Add collections and tags management.
+3. Add multiple senses and richer vocabulary details.
+4. Add JSON/CSV export and import.
+5. Add review-history backup/restore and verify the installer on a clean Windows machine.
+6. Add optional cloud sync only after local data ownership is stable.
+
+For future AI assistants
+------------------------
+Read this file first, then read:
+
+  docs\LEXICON_WINDOWS_DESKTOP_GUIDE.txt
+  docs\ROADMAP_VOCAB_APP.md
+
+Do not rewrite the project. Keep V1 working while adding one milestone at a
+time. Run both frontend and backend builds after changes. Treat SQLite as the
+source of truth for V1. The NSIS installer can be rebuilt with
+`npm run desktop:installer` from the frontend directory. Verify installation
+and data persistence on a clean Windows machine before distribution.
