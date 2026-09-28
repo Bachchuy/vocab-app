@@ -6,13 +6,14 @@ import { WordsController } from './words.controller';
 import { WordsRepository } from './words.repository';
 // Service chứa nghiệp vụ của module từ vựng.
 import { WordsService } from './words.service';
+import { PrismaService } from '../prisma.service';
 
 // Đóng gói controller và các provider của chức năng words.
 @Module({
   // Cho NestJS biết class nào nhận request.
   controllers: [WordsController],
   // Đăng ký các class có thể được inject vào constructor.
-  providers: [WordsService, WordsRepository],
+  providers: [WordsService, WordsRepository, PrismaService],
   // Cho module khác dùng được WordsService nếu cần.
   exports: [WordsService],
 })

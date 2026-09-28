@@ -1,0 +1,30 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "sqlite"
+  url      = env("DATABASE_URL")
+}
+
+model Word {
+  id                    Int      @id @default(autoincrement())
+  english               String
+  meaning               String
+  example               String   @default("")
+  category              String   @default("general")
+  source                String   @default("")
+  notes                 String   @default("")
+  lemma                 String
+  sourceLanguage        String   @default("en")
+  explanationLanguage   String   @default("vi")
+  partOfSpeech          String   @default("")
+  tags                  String   @default("[]")
+  dateAdded             DateTime @default(now())
+  createdAt             DateTime @default(now())
+  updatedAt             DateTime @updatedAt
+
+  @@index([english])
+  @@index([lemma])
+  @@index([category])
+}

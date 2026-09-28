@@ -26,21 +26,21 @@ export class WordsController {
 
   // GET /words: lấy toàn bộ danh sách từ.
   @Get()
-  findAll(): Word[] {
+  findAll(): Promise<Word[]> {
     // Controller chỉ chuyển tiếp request cho service.
     return this.wordsService.findAll();
   }
 
   // GET /words/:id: lấy một từ theo mã số.
   @Get(':id')
-  findOne(@Param('id', ParseIntPipe) id: number): Word {
+  findOne(@Param('id', ParseIntPipe) id: number): Promise<Word> {
     // ParseIntPipe đổi id từ chuỗi URL sang number và báo lỗi nếu không hợp lệ.
     return this.wordsService.findOne(id);
   }
 
   // POST /words: tạo một từ mới.
   @Post()
-  create(@Body() createWordDto: CreateWordDto): Word {
+  create(@Body() createWordDto: CreateWordDto): Promise<Word> {
     // Body đã được ValidationPipe kiểm tra trước khi tới đây.
     return this.wordsService.create(createWordDto);
   }
@@ -50,15 +50,15 @@ export class WordsController {
   update(
     @Param('id', ParseIntPipe) id: number,
     @Body() updateWordDto: UpdateWordDto,
-  ): Word {
+  ): Promise<Word> {
     // Gửi cả id và dữ liệu mới xuống service.
     return this.wordsService.update(id, updateWordDto);
   }
 
   // DELETE /words/:id: xóa một từ theo mã số.
   @Delete(':id')
-  delete(@Param('id', ParseIntPipe) id: number): { success: boolean } {
+  async delete(@Param('id', ParseIntPipe) id: number): Promise<{ success: boolean }> {
     // Trả về trạng thái thành công để frontend biết kết quả.
-    return { success: this.wordsService.delete(id) };
+    return { success: await this.wordsService.delete(id) };
   }
 }

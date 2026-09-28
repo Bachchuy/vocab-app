@@ -1,5 +1,5 @@
 // Import các decorator dùng để kiểm tra dữ liệu request.
-import { IsNotEmpty, IsOptional, IsString, MaxLength } from 'class-validator';
+import { IsArray, IsNotEmpty, IsOptional, IsString, MaxLength } from 'class-validator';
 
 // Mô tả dữ liệu bắt buộc khi tạo một từ mới.
 export class CreateWordDto {
@@ -26,4 +26,41 @@ export class CreateWordDto {
   @IsString()
   @MaxLength(100)
   category?: string;
+
+  // Nguồn tham khảo hoặc ngữ cảnh bắt gặp từ là tùy chọn.
+  @IsOptional()
+  @IsString()
+  @MaxLength(200)
+  source?: string;
+
+  // Ghi chú riêng của học viên.
+  @IsOptional()
+  @IsString()
+  @MaxLength(500)
+  notes?: string;
+
+  @IsOptional()
+  @IsString()
+  @MaxLength(100)
+  lemma?: string;
+
+  @IsOptional()
+  @IsString()
+  @MaxLength(10)
+  sourceLanguage?: string;
+
+  @IsOptional()
+  @IsString()
+  @MaxLength(10)
+  explanationLanguage?: string;
+
+  @IsOptional()
+  @IsString()
+  @MaxLength(50)
+  partOfSpeech?: string;
+
+  @IsOptional()
+  @IsArray()
+  @IsString({ each: true })
+  tags?: string[];
 }

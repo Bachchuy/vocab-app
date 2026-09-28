@@ -1,155 +1,48 @@
-// Import hook chạy side effect và hook lưu state của React.
-import { useEffect, useState } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 
-// Kiểu dữ liệu frontend nhận được từ API /words.
-type Word = {
-  id: number;
-  english: string;
-  meaning: string;
-  example: string;
-  category: string;
-};
+type Word = { id: number; english: string; meaning: string; example: string; category: string; source: string; notes: string; lemma?: string; sourceLanguage?: string; explanationLanguage?: string; partOfSpeech?: string; tags?: string[]; dateAdded?: string };
+type FormState = Omit<Word, 'id'>;
+type Rating = 'again' | 'easy';
+const API = import.meta.env.VITE_API_URL ?? 'http://localhost:3000';
+const blank: FormState = { english: '', meaning: '', example: '', category: 'general', source: '', notes: '' };
 
-// Giá trị ban đầu dùng để reset form sau khi thêm thành công.
-const emptyForm = {
-  english: '',
-  meaning: '',
-  example: '',
-  category: 'general',
-};
-
-// Đọc URL API từ biến môi trường; fallback giúp chạy local ngay lập tức.
-const API_URL = import.meta.env.VITE_API_URL ?? 'http://localhost:3000';
-
-// Component gốc của màn hình quản lý từ vựng.
 export default function App() {
-  // State lưu danh sách từ lấy từ backend.
   const [words, setWords] = useState<Word[]>([]);
-  // State lưu dữ liệu hiện tại trong form.
-  const [form, setForm] = useState(emptyForm);
-  // State hiển thị thông báo thành công hoặc thất bại.
-  const [message, setMessage] = useState('');
+  const [screen, setScreen] = useState<'library' | 'study'>('library');
+  const [selected, setSelected] = useState<Word | null>(null);
+  const [query, setQuery] = useState('');
+  const [category, setCategory] = useState('all');
+  const [sort, setSort] = useState('recent');
+  const [loading, setLoading] = useState(true);
+  const [notice, setNotice] = useState('');
+  const [form, setForm] = useState<FormState>(blank);
+  const [editing, setEditing] = useState<number | null>(null);
+  const [modal, setModal] = useState(false);
+  const [saving, setSaving] = useState(false);
+  const [ratings, setRatings] = useState<Record<number, Rating>>(() => { try { return JSON.parse(localStorage.getItem('vocab-ratings') ?? '{}'); } catch { return {}; } });
+  const [studyIndex, setStudyIndex] = useState(0);
+  const [flipped, setFlipped] = useState(false);
 
-  // Hàm gọi API để lấy danh sách từ mới nhất.
-  const fetchWords = async () => {
-    try {
-      // Gửi request GET tới backend.
-      const response = await fetch(`${API_URL}/words`);
+  const loadWords = async () => { setLoading(true); try { const response = await fetch(`${API}/words`); if (!response.ok) throw new Error(); setWords(await response.json()); } catch { setNotice('Không thể tải từ điển. Kiểm tra backend rồi thử lại.'); } finally { setLoading(false); } };
+  useEffect(() => { void loadWords(); }, []); useEffect(() => { localStorage.setItem('vocab-ratings', JSON.stringify(ratings)); }, [ratings]); useEffect(() => { if (selected) setSelected(words.find((word) => word.id === selected.id) ?? null); }, [words]);
+  const categories = useMemo(() => ['all', ...new Set(words.map((word) => word.category))], [words]);
+  const visibleWords = useMemo(() => [...words.filter((word) => `${word.english} ${word.meaning} ${word.example} ${word.source} ${word.notes}`.toLowerCase().includes(query.toLowerCase()) && (category === 'all' || word.category === category))].sort((a, b) => sort === 'az' ? a.english.localeCompare(b.english) : sort === 'za' ? b.english.localeCompare(a.english) : b.id - a.id), [words, query, category, sort]);
+  const dueWords = words.filter((word) => ratings[word.id] !== 'easy'); const currentWord = dueWords[studyIndex % Math.max(dueWords.length, 1)];
+  const update = (field: keyof FormState, value: string) => setForm((old) => ({ ...old, [field]: value }));
+  const openAdd = () => { setEditing(null); setForm(blank); setModal(true); };
+  const openEdit = (word: Word) => { setEditing(word.id); setForm({ english: word.english, meaning: word.meaning, example: word.example, category: word.category, source: word.source, notes: word.notes }); setModal(true); };
+  const save = async (event: React.FormEvent) => { event.preventDefault(); if (!form.english.trim() || !form.meaning.trim()) { setNotice('Hãy nhập từ và nghĩa của từ.'); return; } setSaving(true); try { const response = await fetch(`${API}/words${editing ? `/${editing}` : ''}`, { method: editing ? 'PATCH' : 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(form) }); if (!response.ok) throw new Error(); setModal(false); setForm(blank); setNotice(editing ? 'Đã cập nhật mục từ.' : 'Đã lưu từ vào từ điển.'); await loadWords(); } catch { setNotice('Không thể lưu thay đổi.'); } finally { setSaving(false); } };
+  const remove = async (word: Word) => { if (!window.confirm(`Xóa “${word.english}” khỏi từ điển?`)) return; try { const response = await fetch(`${API}/words/${word.id}`, { method: 'DELETE' }); if (!response.ok) throw new Error(); setSelected(null); setNotice(`Đã xóa “${word.english}”.`); await loadWords(); } catch { setNotice('Không thể xóa mục từ.'); } };
+  const openStudy = () => { setScreen('study'); setSelected(null); setStudyIndex(0); setFlipped(false); };
+  const rate = (rating: Rating) => { if (!currentWord) return; setRatings((old) => ({ ...old, [currentWord.id]: rating })); setStudyIndex((old) => old + 1); setFlipped(false); };
 
-      // HTTP lỗi không nên bị coi là dữ liệu hợp lệ.
-      if (!response.ok) {
-        throw new Error(`Fetch words failed with status ${response.status}`);
-      }
-
-      // Chuyển JSON response thành object JavaScript.
-      const data = await response.json();
-      // Cập nhật state để React render lại danh sách.
-      setWords(data);
-    } catch (error) {
-      // In lỗi kỹ thuật để developer xem trong DevTools.
-      console.error('Failed to fetch words:', error);
-      // Hiển thị thông báo dễ hiểu cho người dùng.
-      setMessage('Không thể kết nối tới backend. Hãy đảm bảo server đang chạy.');
-    }
-  };
-
-  // Chạy một lần sau lần render đầu tiên để tải dữ liệu ban đầu.
-  useEffect(() => {
-    fetchWords();
-  }, []);
-
-  // Cập nhật một field trong form mà không làm mất các field khác.
-  const handleChange = (field: keyof typeof emptyForm, value: string) => {
-    setForm((current) => ({ ...current, [field]: value }));
-  };
-
-  // Xử lý lúc người dùng bấm nút Add word.
-  const handleSubmit = async (event: React.FormEvent<HTMLFormElement>) => {
-    // Ngăn trình duyệt reload trang theo hành vi mặc định của form.
-    event.preventDefault();
-
-    try {
-      // Gửi dữ liệu form lên backend bằng HTTP POST.
-      const response = await fetch(`${API_URL}/words`, {
-        method: 'POST',
-        // Báo cho backend biết body là JSON.
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        // Chuyển object form thành chuỗi JSON.
-        body: JSON.stringify(form),
-      });
-
-      // Nếu API trả lỗi thì chuyển sang khối catch.
-      if (!response.ok) {
-        throw new Error('Create word failed');
-      }
-
-      // Xóa dữ liệu cũ để chuẩn bị cho lần nhập tiếp theo.
-      setForm(emptyForm);
-      // Thông báo thao tác đã thành công.
-      setMessage('Từ mới đã được thêm thành công.');
-      // Tải lại danh sách để hiển thị từ vừa tạo.
-      await fetchWords();
-    } catch (error) {
-      // Ghi log lỗi dành cho developer.
-      console.error(error);
-      // Hiển thị thông báo thân thiện với người dùng.
-      setMessage('Thêm từ thất bại. Vui lòng kiểm tra dữ liệu nhập.');
-    }
-  };
-
-  // JSX mô tả cấu trúc giao diện mà React sẽ render.
-  return (
-    <main className="app-shell">
-      <section className="card">
-        <p className="eyebrow">Vocabulary app</p>
-        <h1>Vocab learning dashboard</h1>
-        <p className="subtitle">
-          Quản lý từ vựng, học và ôn tập.
-        </p>
-
-        <form className="word-form" onSubmit={handleSubmit}>
-          <input
-            type="text"
-            placeholder="English"
-            value={form.english}
-            onChange={(event) => handleChange('english', event.target.value)}
-          />
-          <input
-            type="text"
-            placeholder="Meaning"
-            value={form.meaning}
-            onChange={(event) => handleChange('meaning', event.target.value)}
-          />
-          <input
-            type="text"
-            placeholder="Example"
-            value={form.example}
-            onChange={(event) => handleChange('example', event.target.value)}
-          />
-          <input
-            type="text"
-            placeholder="Category"
-            value={form.category}
-            onChange={(event) => handleChange('category', event.target.value)}
-          />
-          <button type="submit">Add word</button>
-        </form>
-
-        {message && <p className="message">{message}</p>}
-
-        <div className="word-grid">
-          {words.map((item) => (
-            <article key={item.id} className="word-item">
-              <h2>{item.english}</h2>
-              <span>{item.meaning}</span>
-              <small>{item.example || 'No example yet'}</small>
-              <em>{item.category}</em>
-            </article>
-          ))}
-        </div>
-      </section>
-    </main>
-  );
+  return <div className="app-frame"><Sidebar count={words.length} due={dueWords.length} screen={screen} onLibrary={() => { setScreen('library'); setSelected(null); }} onStudy={openStudy} onNotice={setNotice} /><main><header><span>Lexicon / {selected ? selected.english : screen === 'study' ? 'Ôn lại từ đã lưu' : 'Từ điển cá nhân'}</span><button>HA &nbsp; Học viên⌄</button></header>{notice && <div className="toast">{notice}<button onClick={() => setNotice('')}>×</button></div>}{screen === 'study' ? <Study word={currentWord} total={dueWords.length} index={studyIndex} flipped={flipped} onFlip={() => setFlipped(!flipped)} onRate={rate} /> : selected ? <WordDetail word={selected} mastered={Boolean(ratings[selected.id])} onBack={() => setSelected(null)} onEdit={() => openEdit(selected)} onDelete={() => remove(selected)} /> : <Library words={visibleWords} total={words.length} categories={categories} query={query} category={category} sort={sort} loading={loading} onQuery={setQuery} onCategory={setCategory} onSort={setSort} onAdd={openAdd} onOpen={setSelected} onRetry={loadWords} onEdit={openEdit} onDelete={remove} />}</main>{modal && <WordForm form={form} editing={editing !== null} saving={saving} onUpdate={update} onSave={save} onClose={() => !saving && setModal(false)} />}</div>;
 }
+
+function Sidebar({ count, due, screen, onLibrary, onStudy, onNotice }: { count: number; due: number; screen: string; onLibrary: () => void; onStudy: () => void; onNotice: (text: string) => void }) { return <aside className="sidebar"><div className="brand"><span className="brand-mark">V</span>Lexicon</div><div className="profile"><span className="avatar">HA</span><div><b>Từ điển cá nhân</b><small>{count} từ đã lưu</small></div></div><nav><p>Kho từ của tôi</p><button className={screen === 'library' ? 'active' : ''} onClick={onLibrary}>▤ Thư viện từ</button><button onClick={() => onNotice('Tổng quan sẽ được mở rộng sau detail page.')}>⌂ Tổng quan</button><button className={screen === 'study' ? 'active' : ''} onClick={onStudy}>◉ Ôn lại từ đã lưu <b>{due}</b></button><p>Cá nhân</p><button onClick={() => onNotice('Thống kê chi tiết đang được chuẩn bị.')}>↗ Tiến độ</button></nav><div className="sidebar-footer">✦ <span><b>Kho từ của riêng bạn</b><small>Tự chọn, tự tích lũy</small></span></div></aside>; }
+function Field({ label, value, placeholder, onChange }: { label: string; value: string; placeholder: string; onChange: (value: string) => void }) { return <label>{label}<input value={value} placeholder={placeholder} onChange={(event) => onChange(event.target.value)} /></label>; }
+function WordForm({ form, editing, saving, onUpdate, onSave, onClose }: { form: FormState; editing: boolean; saving: boolean; onUpdate: (field: keyof FormState, value: string) => void; onSave: (event: React.FormEvent) => void; onClose: () => void }) { return <div className="modal" onMouseDown={onClose}><form onSubmit={onSave} onMouseDown={(event) => event.stopPropagation()}><button className="close" type="button" onClick={onClose}>×</button><p className="eyebrow">Personal dictionary</p><h2>{editing ? 'Chỉnh sửa mục từ' : 'Lưu từ mới'}</h2><p className="form-help">Ghi lại từ bạn gặp ở bất kỳ đâu.</p><Field label="Từ tiếng Anh" value={form.english} placeholder="resilient" onChange={(value) => onUpdate('english', value)} /><Field label="Nghĩa tiếng Việt" value={form.meaning} placeholder="kiên cường" onChange={(value) => onUpdate('meaning', value)} /><Field label="Bạn gặp từ này ở đâu?" value={form.source} placeholder="Sách, phim, lớp học..." onChange={(value) => onUpdate('source', value)} /><Field label="Chủ đề" value={form.category} placeholder="general" onChange={(value) => onUpdate('category', value)} /><label>Câu ví dụ<textarea rows={3} value={form.example} onChange={(event) => onUpdate('example', event.target.value)} /></label><label>Ghi chú cá nhân<textarea rows={2} value={form.notes} onChange={(event) => onUpdate('notes', event.target.value)} /></label><button className="primary" disabled={saving}>{saving ? 'Đang lưu...' : 'Lưu vào từ điển →'}</button></form></div>; }
+function Library({ words, total, categories, query, category, sort, loading, onQuery, onCategory, onSort, onAdd, onOpen, onRetry, onEdit, onDelete }: { words: Word[]; total: number; categories: string[]; query: string; category: string; sort: string; loading: boolean; onQuery: (value: string) => void; onCategory: (value: string) => void; onSort: (value: string) => void; onAdd: () => void; onOpen: (word: Word) => void; onRetry: () => void; onEdit: (word: Word) => void; onDelete: (word: Word) => void }) { return <div className="page"><div className="heading"><div><p className="eyebrow">Your personal dictionary</p><h1>Những từ của bạn.</h1><p className="muted">Tự tìm hiểu ở bất cứ đâu, rồi lưu lại để không quên.</p></div><button className="primary" onClick={onAdd}>＋ Lưu từ mới</button></div><div className="library-intro"><strong>{total}</strong><span>từ đã tích lũy</span><p>Mỗi từ bạn lưu lại là một mảnh ghép trong hành trình ngôn ngữ của riêng mình.</p></div><div className="toolbar"><input value={query} onChange={(event) => onQuery(event.target.value)} placeholder="⌕  Tìm từ, nghĩa, nguồn hoặc ghi chú..." /><select value={category} onChange={(event) => onCategory(event.target.value)}>{categories.map((item) => <option key={item} value={item}>{item === 'all' ? 'Tất cả chủ đề' : item}</option>)}</select><select value={sort} onChange={(event) => onSort(event.target.value)}><option value="recent">Mới thêm trước</option><option value="az">A → Z</option><option value="za">Z → A</option></select><span>{words.length} / {total}</span></div>{loading ? <div className="empty">Đang tải từ điển...</div> : <div className="library-grid">{words.map((word) => <article key={word.id} onClick={() => onOpen(word)}><div className="card-tools"><em>{word.category}</em><span><button onClick={(event) => { event.stopPropagation(); onEdit(word); }}>Sửa</button><button onClick={(event) => { event.stopPropagation(); onDelete(word); }}>Xóa</button></span></div><h2>{word.english}</h2><b>{word.meaning}</b>{word.source && <p className="source">Gặp ở: {word.source}</p>}<p>{word.example || 'Chưa có câu ví dụ.'}</p>{word.notes && <p className="notes">“{word.notes}”</p>}<small>Nhấn để xem chi tiết →</small></article>)}</div>}{!loading && !words.length && <div className="empty">{query || category !== 'all' ? 'Không tìm thấy từ phù hợp.' : 'Chưa có từ nào. Hãy lưu từ đầu tiên.'}<br /><button className="primary" onClick={query || category !== 'all' ? () => { onQuery(''); onCategory('all'); } : onAdd}>{query || category !== 'all' ? 'Xem tất cả từ' : 'Lưu từ đầu tiên'}</button></div>}{!loading && total === 0 && <button className="retry-button" onClick={onRetry}>Tải lại dữ liệu</button>}</div>; }
+function WordDetail({ word, mastered, onBack, onEdit, onDelete }: { word: Word; mastered: boolean; onBack: () => void; onEdit: () => void; onDelete: () => void }) { return <div className="page detail-page"><button className="back-button" onClick={onBack}>← Thư viện từ</button><div className="detail-heading"><div><p className="eyebrow">Vocabulary entry</p><h1>{word.english}</h1><p className="detail-meaning">{word.meaning}</p></div><div className="detail-actions"><span className={mastered ? 'status mastered' : 'status new'}>{mastered ? 'Đã nhớ' : 'Mới lưu'}</span><button className="primary" onClick={onEdit}>Chỉnh sửa</button><button className="danger-button" onClick={onDelete}>Xóa</button></div></div><div className="detail-grid"><section className="detail-main"><DetailBlock title="Câu ví dụ" content={word.example || 'Chưa có câu ví dụ. Hãy thêm một câu để ghi nhớ cách dùng.'} /><DetailBlock title="Ngữ cảnh / nguồn" content={word.source || 'Chưa ghi lại nguồn gặp từ.'} /><DetailBlock title="Ghi chú cá nhân" content={word.notes || 'Chưa có ghi chú cá nhân.'} /></section><aside className="detail-side"><div><small>Chủ đề</small><strong>{word.category}</strong></div><div><small>Trạng thái học</small><strong>{mastered ? 'Mastered' : 'New'}</strong></div><div><small>Ôn tập</small><strong>{mastered ? 'Đã ôn' : 'Đang chờ ôn'}</strong></div></aside></div></div>; }
+function DetailBlock({ title, content }: { title: string; content: string }) { return <section className="detail-block"><h2>{title}</h2><p>{content}</p></section>; }
+function Study({ word, total, index, flipped, onFlip, onRate }: { word?: Word; total: number; index: number; flipped: boolean; onFlip: () => void; onRate: (rating: Rating) => void }) { return <div className="page study"><div className="heading"><div><p className="eyebrow">Review your collection</p><h1>Ôn lại từ đã lưu</h1><p className="muted">Chỉ ôn những gì chính bạn đã chọn.</p></div><strong>{Math.min(index + 1, total || 1)} / {total}</strong></div>{word ? <><div className={`flashcard ${flipped ? 'flipped' : ''}`} onClick={onFlip}><div><small>English word</small><strong>{word.english}</strong><em>Nhấn để lật thẻ</em></div><div><small>Meaning</small><strong>{word.meaning}</strong><p>{word.example || 'Bạn chưa thêm ví dụ cho từ này.'}</p></div></div><p className="question">Bạn nhớ từ này đến đâu?</p><div className="ratings"><button onClick={() => onRate('again')}>↻ <b>Ôn lại</b><small>Lặp lại</small></button><button onClick={() => onRate('easy')}>✓ <b>Đã nhớ</b><small>Ngày mai</small></button></div></> : <div className="finished"><h2>✦<br />Đã ôn hết bộ sưu tập!</h2><p>Quay lại thư viện để lưu thêm từ mới.</p></div>}</div>; }

@@ -3,3 +3,7 @@ dist/
 .env
 .env.*
 !.env.example
+backend/data/
+backend/prisma/*.db
+backend/prisma/*.db-journal
+backend/.env

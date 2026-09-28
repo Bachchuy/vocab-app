@@ -1,80 +1,55 @@
-// Repository hiện tại là lớp lưu dữ liệu tạm thời trong memory.
 import { Injectable } from '@nestjs/common';
-// Entity và DTO giúp dữ liệu được kiểm tra kiểu ở compile time.
+import { Word as PrismaWord } from '@prisma/client';
+import { PrismaService } from '../prisma.service';
 import { Word } from './word.entity';
 import { CreateWordDto } from './dto/create-word.dto';
 import { UpdateWordDto } from './dto/update-word.dto';
 
-// Cho phép NestJS inject repository vào service.
+type StoredWord = PrismaWord;
+
 @Injectable()
 export class WordsRepository {
-  // Dữ liệu mẫu sẽ mất khi server restart; sau này thay bằng database.
-  private readonly words: Word[] = [
-    new Word(1, 'learn', 'học', 'I want to learn English every day.', 'daily'),
-    new Word(2, 'practice', 'luyện tập', 'Practice makes progress.', 'study'),
-    new Word(3, 'review', 'ôn tập', 'I review vocabulary every night.', 'revision'),
-  ];
+  constructor(private readonly prisma: PrismaService) {}
 
-  // Id tiếp theo được cấp cho từ mới.
-  private nextId = 4;
-
-  // Trả về bản sao mảng để code bên ngoài không sửa trực tiếp kho dữ liệu.
-  findAll(): Word[] {
-    return [...this.words];
+  private toEntity(word: StoredWord): Word {
+    let tags: string[] = [];
+    try { tags = JSON.parse(word.tags) as string[]; } catch { tags = []; }
+    return new Word(word.id, word.english, word.meaning, word.example, word.category, word.source, word.notes, word.lemma, word.sourceLanguage, word.explanationLanguage, word.partOfSpeech, tags, word.dateAdded.toISOString());
   }
 
-  // Tìm phần tử đầu tiên có id tương ứng.
-  findById(id: number): Word | undefined {
-    return this.words.find((word) => word.id === id);
+  async findAll(): Promise<Word[]> {
+    const words = await this.prisma.word.findMany({ orderBy: { id: 'asc' } });
+    return words.map((word) => this.toEntity(word));
   }
 
-  // Tạo object Word mới và thêm vào mảng.
-  create(createWordDto: CreateWordDto): Word {
-    const newWord = new Word(
-      this.nextId++,
-      createWordDto.english.trim(),
-      createWordDto.meaning.trim(),
-      createWordDto.example?.trim() ?? '',
-      createWordDto.category?.trim() ?? 'general',
-    );
-
-    // Tăng id sau mỗi lần tạo để tránh trùng mã.
-    this.words.push(newWord);
-    return newWord;
+  async findById(id: number): Promise<Word | undefined> {
+    const word = await this.prisma.word.findUnique({ where: { id } });
+    return word ? this.toEntity(word) : undefined;
   }
 
-  // Tìm và cập nhật các field được gửi lên.
-  update(id: number, updateWordDto: UpdateWordDto): Word | undefined {
-    const word = this.words.find((item) => item.id === id);
-
-    // Không tìm thấy thì service sẽ chuyển thành lỗi 404.
-    if (!word) {
-      return undefined;
-    }
-
-    // Giữ giá trị cũ cho field không xuất hiện trong PATCH.
-    Object.assign(word, {
-      english: updateWordDto.english?.trim() ?? word.english,
-      meaning: updateWordDto.meaning?.trim() ?? word.meaning,
-      example: updateWordDto.example?.trim() ?? word.example,
-      category: updateWordDto.category?.trim() ?? word.category,
-    });
-
-    // Trả object đã cập nhật.
-    return word;
+  async findByEnglish(english: string, excludedId?: number): Promise<Word | undefined> {
+    const words = await this.prisma.word.findMany({ where: excludedId ? { id: { not: excludedId } } : undefined });
+    const match = words.find((word) => word.english.toLocaleLowerCase() === english.trim().toLocaleLowerCase());
+    return match ? this.toEntity(match) : undefined;
   }
 
-  // Xóa phần tử theo vị trí trong mảng.
-  delete(id: number): boolean {
-    const index = this.words.findIndex((word) => word.id === id);
+  async create(dto: CreateWordDto): Promise<Word> {
+    const word = await this.prisma.word.create({ data: {
+      english: dto.english.trim(), meaning: dto.meaning.trim(), example: dto.example?.trim() ?? '', category: dto.category?.trim() ?? 'general', source: dto.source?.trim() ?? '', notes: dto.notes?.trim() ?? '', lemma: dto.lemma?.trim() || dto.english.trim(), sourceLanguage: dto.sourceLanguage?.trim() ?? 'en', explanationLanguage: dto.explanationLanguage?.trim() ?? 'vi', partOfSpeech: dto.partOfSpeech?.trim() ?? '', tags: JSON.stringify(dto.tags?.map((tag) => tag.trim()).filter(Boolean) ?? []),
+    } });
+    return this.toEntity(word);
+  }
 
-    // -1 nghĩa là không có phần tử phù hợp.
-    if (index === -1) {
-      return false;
-    }
+  async update(id: number, dto: UpdateWordDto): Promise<Word | undefined> {
+    try {
+      const word = await this.prisma.word.update({ where: { id }, data: {
+        ...(dto.english !== undefined && { english: dto.english.trim() }), ...(dto.meaning !== undefined && { meaning: dto.meaning.trim() }), ...(dto.example !== undefined && { example: dto.example.trim() }), ...(dto.category !== undefined && { category: dto.category.trim() }), ...(dto.source !== undefined && { source: dto.source.trim() }), ...(dto.notes !== undefined && { notes: dto.notes.trim() }), ...(dto.lemma !== undefined && { lemma: dto.lemma.trim() }), ...(dto.sourceLanguage !== undefined && { sourceLanguage: dto.sourceLanguage.trim() }), ...(dto.explanationLanguage !== undefined && { explanationLanguage: dto.explanationLanguage.trim() }), ...(dto.partOfSpeech !== undefined && { partOfSpeech: dto.partOfSpeech.trim() }), ...(dto.tags !== undefined && { tags: JSON.stringify(dto.tags.map((tag) => tag.trim()).filter(Boolean)) }),
+      } });
+      return this.toEntity(word);
+    } catch { return undefined; }
+  }
 
-    // splice xóa đúng một phần tử tại vị trí index.
-    this.words.splice(index, 1);
-    return true;
+  async delete(id: number): Promise<boolean> {
+    try { await this.prisma.word.delete({ where: { id } }); return true; } catch { return false; }
   }
 }
