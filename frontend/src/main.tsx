@@ -11,7 +11,7 @@ import './index.css';
 ReactDOM.createRoot(document.getElementById('root') as HTMLElement).render(
   // StrictMode giúp phát hiện một số vấn đề trong lúc phát triển.
   <React.StrictMode>
-    // App là component đầu tiên của cây giao diện.
+    {/* App là component đầu tiên của cây giao diện. */}
     <App />
   </React.StrictMode>,
 );

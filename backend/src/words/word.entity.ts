@@ -25,5 +25,11 @@ export class Word {
     public partOfSpeech: string = '',
     public tags: string[] = [],
     public dateAdded: string = new Date().toISOString(),
+    public pronunciation: string = '',
+    public wordForms: { partOfSpeech: string; form: string; meaning: string }[] = [],
+    public synonyms: string[] = [],
+    public antonyms: string[] = [],
+    public collocations: string[] = [],
+    public toeicContext: string = '',
   ) {}
 }

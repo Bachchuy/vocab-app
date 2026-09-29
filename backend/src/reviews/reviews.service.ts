@@ -25,7 +25,7 @@ export class ReviewsService {
 
   async findStates() {
     return this.prisma.reviewState.findMany({
-      select: { wordId: true, status: true, dueAt: true, reviewCount: true, correctCount: true, incorrectCount: true, intervalDays: true },
+      select: { wordId: true, status: true, dueAt: true, lastReviewedAt: true, reviewCount: true, correctCount: true, incorrectCount: true, intervalDays: true },
     });
   }
 

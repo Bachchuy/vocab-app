@@ -20,6 +20,12 @@ model Word {
   explanationLanguage   String   @default("vi")
   partOfSpeech          String   @default("")
   tags                  String   @default("[]")
+  pronunciation         String   @default("")
+  wordForms             String   @default("[]")
+  synonyms              String   @default("[]")
+  antonyms              String   @default("[]")
+  collocations           String   @default("[]")
+  toeicContext           String   @default("")
   dateAdded             DateTime @default(now())
   createdAt             DateTime @default(now())
   updatedAt             DateTime @updatedAt
