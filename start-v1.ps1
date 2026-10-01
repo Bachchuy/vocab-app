@@ -2,6 +2,7 @@ $root = Split-Path -Parent $MyInvocation.MyCommand.Path
 $backend = Join-Path $root 'backend'
 $frontend = Join-Path $root 'frontend'
 $backendEnv = Join-Path $backend '.env'
+$prismaClient = Join-Path $backend 'node_modules\.prisma\client\query_engine-windows.dll.node'
 
 if (-not (Test-Path (Join-Path $backend 'node_modules'))) {
     Push-Location $backend
@@ -15,8 +16,10 @@ if (-not (Test-Path $backendEnv)) {
 }
 
 Push-Location $backend
-npm run db:generate
-if ($LASTEXITCODE -ne 0) { Pop-Location; throw 'Prisma client generation failed.' }
+if (-not (Test-Path $prismaClient)) {
+    npm run db:generate
+    if ($LASTEXITCODE -ne 0) { Pop-Location; throw 'Prisma client generation failed.' }
+}
 npx prisma migrate deploy
 if ($LASTEXITCODE -ne 0) { Pop-Location; throw 'Database migration failed.' }
 npm run db:seed
