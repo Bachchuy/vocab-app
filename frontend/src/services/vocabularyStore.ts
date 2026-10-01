@@ -71,10 +71,11 @@ function parseWord(row: Record<string, unknown>): Word {
 export async function suggestWord(english: string, meaning = '', source = ''): Promise<WordSuggestion> {
   const response = await fetch(`${API}/ai/suggest`, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ english, meaning, source }) });
   if (!response.ok) {
-    const error = await response.json().catch(() => ({})) as { message?: string };
-    throw new Error(error.message ?? `Gợi ý AI thất bại (HTTP ${response.status})`);
+    const error = await response.json().catch(() => ({})) as { message?: string | string[] };
+    const message = Array.isArray(error.message) ? error.message.join(', ') : error.message;
+    throw new Error(message ?? `Gợi ý AI thất bại (HTTP ${response.status})`);
   }
-  return response.json();
+  return response.json() as Promise<WordSuggestion>;
 }
 
 export async function listWords(): Promise<Word[]> {
