@@ -1,41 +1,80 @@
-BƯỚC 1: CÀI ĐẶT NODE.JS
+BƯỚC 1: NODE.JS, NPM VÀ CÁCH CHẠY PROJECT
+==========================================
 
-Mục tiêu:
-Cài Node.js để npm có thể cài package, chạy Vite và chạy NestJS.
+Mục tiêu
+--------
+Node.js cho phép chạy JavaScript ngoài trình duyệt. npm đi kèm Node.js để cài
+thư viện và chạy các script được khai báo trong package.json. Project dùng
+Node/npm cho cả frontend build tool lẫn NestJS backend.
 
-1. Cài trên Windows
-Mở PowerShell:
-winget install --id OpenJS.NodeJS.LTS --source winget -e
+Cài trên Windows
+---------------
+Trong PowerShell:
 
-2. Kiểm tra
-Đóng terminal cũ, mở terminal mới rồi chạy:
-node -v
-npm -v
+  winget install --id OpenJS.NodeJS.LTS --source winget -e
 
-Project hiện đã được kiểm tra với Node.js v24.19.0 và npm 11.17.0.
+Đóng terminal cũ, mở terminal mới rồi kiểm tra:
 
-3. Khi node hoặc npm không được nhận diện
-Node thường nằm ở C:\Program Files\nodejs.
-Trong PowerShell hiện tại, tạm thêm PATH:
-$env:Path += ";C:\Program Files\nodejs"
-node -v
-npm -v
+  node -v
+  npm -v
 
-Nếu cách trên hoạt động, mở terminal mới để PATH được nhận tự động.
+Nếu lệnh không được nhận diện, Node thường nằm ở C:\Program Files\nodejs. Có
+thể mở PowerShell mới sau khi cài hoặc kiểm tra PATH trong Windows Settings.
 
-4. Node.js được dùng ở đâu
-- frontend: npm install, npm run dev, npm run build.
-- backend: npm install, npm run start:dev, npm run build.
+Package là gì?
+-------------
+React, NestJS, Vite và TypeScript là các package mà project dùng. package.json
+ghi tên, phiên bản và lệnh; package-lock.json khóa phiên bản cài cụ thể;
+node_modules là thư mục package được tải về. Đừng chỉnh node_modules bằng tay.
 
-5. Kiểm tra sẵn sàng
-Từ thư mục project, hai lệnh sau phải chạy được:
-cd frontend
-npm run build
+Mỗi phần có package.json riêng:
+- frontend/package.json: React, Vite, TypeScript, Tauri CLI.
+- backend/package.json: NestJS, Prisma, class-validator và TypeScript.
 
-cd ..\backend
-npm run build
+Cài dependency
+--------------
+Đứng đúng thư mục trước khi chạy npm:
 
-6. Lỗi thường gặp
-- Chạy npm ở sai thư mục: phải đứng trong frontend hoặc backend.
-- Terminal mở trước khi cài Node: đóng và mở lại.
-- Dùng cd /d trong PowerShell: dùng Set-Location hoặc cd D:\code\vocab-app.
+  cd D:\code\vocab-app\frontend
+  npm ci
+
+  cd D:\code\vocab-app\backend
+  npm ci
+
+npm ci cài đúng những gì trong lock file. Nếu không có package-lock.json thì
+dùng npm install. Lệnh npm run ... chạy script của package.json tại thư mục đó.
+
+Lệnh hay dùng
+-------------
+  frontend: npm run dev             chạy Vite ở localhost:5173
+  frontend: npm run build           kiểm tra TypeScript và build web
+  frontend: npm run desktop:dev     mở app Tauri khi phát triển
+  frontend: npm run desktop:installer tạo bộ cài Windows
+
+  backend:  npm run start:dev       chạy NestJS ở localhost:3000, watch code
+  backend:  npm run build           compile backend vào dist
+  backend:  npm run db:generate     sinh Prisma Client từ schema
+  backend:  npx prisma migrate deploy áp dụng migrations có sẵn
+
+Chạy nhanh toàn app: tại thư mục gốc, chạy .\start-v1.ps1. Xem thêm
+txt/00_TONG_QUAN_VA_LUONG_HOC.txt và docs/V1_QUICKSTART.txt.
+
+Build kiểm tra
+--------------
+  cd D:\code\vocab-app\frontend
+  npm run build
+
+  cd D:\code\vocab-app\backend
+  npm run build
+
+Build không giống test: build kiểm tra type/compile, không tự xác nhận mọi hành
+vi giao diện hoặc database đúng. Khi học, hãy chạy app và thử luồng đã sửa.
+
+Lỗi phổ biến
+------------
+- “Missing script”: đang chạy sai thư mục hoặc gõ tên script không có trong
+  package.json. Dùng npm run để xem script hợp lệ.
+- Port 5173/3000 đang dùng: có server cũ; kiểm tra và dừng cửa sổ server đó.
+- Prisma generate báo EPERM trên Windows: có tiến trình Node đang giữ DLL; đóng
+  backend/watch app liên quan rồi chạy lại.
+- Không tải dữ liệu: phân biệt web dùng NestJS API với desktop dùng SQLite local.

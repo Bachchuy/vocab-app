@@ -1,0 +1,202 @@
+LEXICON - TỪ MỘT FILE CODE ĐẾN MỘT HỆ THỐNG
+============================================
+
+Tài liệu nhập môn dành cho người đã biết viết những chương trình đơn giản
+trong một file và muốn hiểu cách một ứng dụng phần mềm hoàn chỉnh được chia
+thành nhiều phần. Không cần đọc mọi dòng code ngay. Hãy dùng tài liệu này như
+bản đồ để biết mỗi phần làm việc gì và dữ liệu đi qua đâu.
+
+1. LEXICON LÀ GÌ?
+-----------------
+Lexicon là từ điển cá nhân giúp lưu từ tiếng Anh, nghĩa, ví dụ, thông tin TOEIC
+và ghi chú; sau đó ôn lại từ bằng flashcard và xem tiến độ. Ứng dụng có giao
+diện web để phát triển, ứng dụng desktop Windows, backend REST API, database
+và một endpoint AI gợi ý thông tin từ vựng.
+
+Đây là một MVP đang phát triển. CRUD, học từ, lưu dữ liệu, thống kê cơ bản,
+installer và tích hợp AI đã được dựng. Đăng nhập, đồng bộ cloud, quiz, kiểm thử
+tự động và xác thực nội dung AI vẫn là những hướng phát triển tiếp theo.
+
+2. TỪ MỘT FILE ĐẾN CÁC TẦNG
+----------------------------
+Một chương trình nhỏ có thể để input, xử lý và output trong một file:
+
+  nhập từ -> xử lý -> in kết quả
+
+Khi tính năng nhiều lên, nếu dồn tất cả vào một file thì sửa một phần có thể
+làm hỏng phần khác. Vì thế chia theo trách nhiệm:
+
+  Giao diện React
+      ↓ người dùng nhập / bấm
+  vocabularyStore (cách tải và lưu dữ liệu)
+      ↓ chọn nơi lưu
+  Tauri SQLite (desktop) hoặc HTTP (web)
+      ↓ nếu là HTTP
+  NestJS Controller -> Service -> Repository -> Prisma -> SQLite
+
+AI có luồng riêng:
+
+  Nút gợi ý trong React -> POST /ai/suggest -> NestJS AiService
+      -> OpenAI Responses API -> JSON gợi ý -> các trường có thể sửa
+
+Controller là cửa nhận request. Service là nơi xử lý quy tắc nghiệp vụ.
+Repository giao tiếp với database. DTO định nghĩa và kiểm tra input. Prisma
+giúp truy vấn database theo schema có kiểu TypeScript. React lo giao diện và
+tương tác. Các tầng phối hợp qua dữ liệu có cấu trúc thay vì gọi lẫn lộn.
+
+3. CÁC CÔNG NGHỆ ĐANG DÙNG
+--------------------------
+- TypeScript: JavaScript có kiểu dữ liệu để bắt nhiều lỗi sớm hơn.
+- React: tạo giao diện từ các component và state.
+- Vite: chạy server phát triển và đóng gói frontend.
+- NestJS: cấu trúc backend thành module, controller và service.
+- HTTP/JSON: giao thức và định dạng frontend/backend trao đổi dữ liệu.
+- Prisma + SQLite: schema, migration và truy cập dữ liệu backend.
+- Tauri + SQLite plugin: đóng gói giao diện thành ứng dụng desktop, lưu local.
+- OpenAI API: gợi ý các trường từ vựng qua backend.
+
+4. ĐỌC CẤU TRÚC PROJECT
+-----------------------
+frontend/src/main.tsx
+  Điểm bắt đầu React. Gắn App vào phần tử root của HTML.
+
+frontend/src/App.tsx
+  Điều phối màn hình, state và tương tác chính của ứng dụng.
+
+frontend/src/services/vocabularyStore.ts
+  Các hàm list/save/delete/review; chọn local SQLite khi chạy Tauri hoặc HTTP
+  khi chạy web. Đây là adapter che giấu chi tiết nơi lưu khỏi giao diện.
+
+frontend/src/index.css
+  Màu sắc, layout, responsive và phong cách hiển thị.
+
+frontend/src-tauri/
+  Cấu hình và mã vỏ desktop Tauri, capability và đóng gói installer.
+
+backend/src/main.ts
+  Khởi động NestJS, bật validation, CORS và cổng HTTP.
+
+backend/src/app.module.ts
+  Module gốc lắp ghép các feature module.
+
+backend/src/words/
+  API và nghiệp vụ CRUD từ vựng.
+
+backend/src/reviews/
+  Lịch ôn, trạng thái và lịch sử ôn.
+
+backend/src/ai/
+  API nhận yêu cầu gợi ý và gọi dịch vụ AI. Khóa bí mật chỉ được đọc ở backend.
+
+backend/prisma/schema.prisma
+  Mô tả bảng và quan hệ database của backend.
+
+backend/prisma/migrations/
+  Các thay đổi schema theo thời gian. Migration thêm trường không xóa data cũ.
+
+docs/ và txt/
+  Hướng dẫn chạy, kiến trúc, học theo file và lộ trình.
+
+5. MỘT LƯỢT LƯU TỪ DIỄN RA THẾ NÀO?
+-----------------------------------
+1. Người dùng gõ từ và nghĩa trong form.
+2. React cập nhật state của form mỗi lần gõ.
+3. Khi bấm Lưu, App gọi hàm saveWord trong vocabularyStore.
+4. Nếu đang chạy desktop, service dùng plugin SQLite. Nếu chạy web, gửi POST
+   /words tới backend.
+5. Backend kiểm tra DTO, service xử lý quy tắc như chống từ trùng.
+6. Repository dùng Prisma ghi dữ liệu vào SQLite backend.
+7. Kết quả đi ngược về frontend; danh sách được tải lại và giao diện cập nhật.
+
+Hãy theo dõi một luồng như vậy để học. Không cần thuộc toàn bộ API của React
+hay NestJS; quan trọng là biết tìm đúng tầng và hiểu dữ liệu chuyển tiếp ra sao.
+
+6. HAI CHẾ ĐỘ CHẠY VÀ NƠI LƯU DỮ LIỆU
+--------------------------------------
+Web dev:
+  React tại http://localhost:5173 -> NestJS tại http://localhost:3000
+  -> backend/prisma/dev.db.
+
+Desktop:
+  Tauri mở React; từ vựng và review lưu trong SQLite riêng của app.
+  Các chức năng cơ bản có thể dùng offline. Gợi ý AI cần backend ở localhost:3000.
+
+Hai database hiện chưa tự đồng bộ. Nhập/xuất JSON chuyển danh sách từ vựng,
+không chuyển lịch sử và trạng thái ôn. Đừng nhầm việc cùng một giao diện với
+việc cùng một database.
+
+7. CÁCH CHẠY DỰ ÁN
+------------------
+Yêu cầu: Windows, Node.js và npm. Từ PowerShell ở thư mục gốc project:
+
+  powershell -ExecutionPolicy Bypass -File .\start-v1.ps1
+
+Script chuẩn bị dependencies/database rồi mở terminal cho backend và frontend.
+Mở http://localhost:5173 để dùng web. Giữ hai cửa sổ terminal mở.
+
+Muốn chạy thủ công, xem docs/V1_QUICKSTART.txt. Muốn mở desktop khi đã có môi
+trường build, xem docs/LEXICON_WINDOWS_DESKTOP_GUIDE.txt. Bộ cài nằm tại:
+
+  frontend\src-tauri\target\release\bundle\nsis\Lexicon_0.1.0_x64-setup.exe
+
+8. CÁCH HỌC TỪNG BƯỚC
+---------------------
+Bước A: chạy app, thêm một từ, sửa nó, ôn nó. Ghi lại điều gì thay đổi trên UI.
+Bước B: đọc App.tsx và tìm state, event handler, hàm gọi storage.
+Bước C: đọc vocabularyStore.ts và xác định desktop/web rẽ nhánh ở đâu.
+Bước D: với web API, lần theo Controller -> Service -> Repository.
+Bước E: xem schema/migration để hiểu dữ liệu được lưu thế nào.
+Bước F: tự sửa một thay đổi nhỏ, ví dụ thêm một trường hoặc thông báo lỗi.
+Bước G: chạy build trong đúng thư mục và đọc lỗi từ trên xuống.
+
+Đừng sửa nhiều tầng cùng lúc nếu chưa biết lỗi nằm ở đâu. Làm một “vertical
+slice”: theo một thay đổi từ giao diện đến nơi lưu, rồi kiểm tra kết quả.
+
+9. CÁC KHÁI NIỆM LẬP TRÌNH QUA PROJECT
+--------------------------------------
+- Biến/state: dữ liệu tạm thời của giao diện, như form và danh sách từ.
+- Hàm: hành động như saveWord, reviewWord, loadWords.
+- Kiểu dữ liệu: mô tả hình dạng Word, ReviewState, DTO.
+- Component: phần giao diện có thể tái sử dụng.
+- HTTP endpoint: địa chỉ backend nhận một loại request.
+- Dependency injection: NestJS tạo service/repository và truyền cho lớp cần dùng.
+- ORM: Prisma chuyển thao tác TypeScript thành truy vấn database.
+- Migration: lịch sử thay đổi database có thể áp dụng theo thứ tự.
+- Error handling: bắt và hiển thị lỗi để người dùng biết thao tác thất bại.
+- Build: kiểm tra TypeScript và tạo phiên bản chạy/đóng gói.
+
+10. TRẠNG THÁI VÀ GIỚI HẠN
+--------------------------
+Đã có CRUD, search/filter/sort, trang chi tiết, JSON transfer, review scheduler
+cơ bản, review history ở backend, dashboard, trường TOEIC, gợi ý AI và Windows
+installer. Build frontend/backend và tạo installer đã thành công.
+
+Chưa có: login/multi-user, cloud sync, quiz, backup đầy đủ review history,
+kiểm thử tự động, biểu đồ học tập chuyên sâu và xác minh AI bằng từ điển tin cậy.
+AI cần API key và internet; không nên tin tuyệt đối vào gợi ý. Các trường họ từ,
+synonym/antonym hiện có thể bỏ trống; hệ thống chưa ép đủ dữ liệu cho mọi từ.
+
+11. LƯU Ý BẢO VỆ DỮ LIỆU
+-----------------------
+- Không xóa backend/prisma/dev.db nếu muốn giữ database backend.
+- Desktop có database riêng; xuất JSON để sao lưu danh sách từ.
+- Không đưa .env/API key lên GitHub hoặc chia sẻ ảnh chụp có chứa key.
+- Trước migration có thể làm mất dữ liệu, tạo bản sao database.
+- Nếu save lỗi, đọc thông báo UI và terminal; kiểm tra database path, quyền và
+  backend/network tùy chế độ chạy.
+
+12. CÁCH DÙNG AI ĐỂ HỌC CODE
+----------------------------
+Hãy đưa một câu hỏi cụ thể: “Khi bấm nút này, dữ liệu qua file nào? Giải thích
+từng bước và cho tôi tự sửa phần đầu tiên.” Yêu cầu giải thích khái niệm, nguyên
+nhân lỗi và cách tự xác minh. Không chỉ copy code; hãy tự diễn đạt lại luồng.
+
+Chu trình học gợi ý:
+  Đọc requirement -> chọn một luồng -> lần theo code -> sửa nhỏ -> build
+  -> chạy bằng tay -> xem lỗi -> ghi điều đã học -> commit thay đổi.
+
+TÀI LIỆU TIẾP THEO
+------------------
+README.txt -> file tổng quan này -> 01 -> 02 -> 03 -> 04 -> V1_QUICKSTART.
+Sau đó đọc các file hướng dẫn nhỏ trong txt/frontend và txt/backend khi mở
+đúng file source. Hướng dẫn AI: docs/TOEIC_AI.md.

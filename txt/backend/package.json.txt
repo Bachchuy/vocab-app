@@ -1,26 +1,14 @@
 HƯỚNG DẪN: backend/package.json
 
-Vai trò:
-Khai báo package và lệnh chạy NestJS backend.
+Đây là manifest của backend NestJS: khai báo dependencies và lệnh chạy.
+Scripts hiện có:
+- npm run build: compile backend vào dist.
+- npm run start / start:dev / start:prod: chạy server thường, watch hoặc production.
+- npm run db:generate: sinh Prisma Client.
+- npm run db:migrate: chạy migration phát triển.
+- npm run db:seed: nạp starter data.
+- npm run db:status: xem trạng thái migration.
 
-Scripts:
-- npm run build: compile NestJS vào dist.
-- npm run start: chạy backend.
-- npm run start:dev: chạy watch mode, tự compile khi sửa code.
-- npm run start:prod: chạy file dist/main sau khi build.
-
-Dependencies chính:
-- @nestjs/common: decorator và API cơ bản.
-- @nestjs/core: engine NestJS.
-- @nestjs/platform-express: HTTP adapter.
-- reflect-metadata: metadata cho decorators và dependency injection.
-- rxjs: reactive utilities của NestJS.
-
-DevDependencies:
-Công cụ CLI, TypeScript, type Node và ts-node.
-
-Quy trình:
-cd backend -> npm install -> npm run start:dev
-
-Lưu ý:
-package-lock.json được npm sinh tự động; không viết tay file đó.
+Dependencies đáng chú ý: NestJS, Prisma Client, class-validator,
+class-transformer, TypeScript. package-lock.json do npm quản lý; không sửa tay.
+Thêm package bằng npm install <tên> trong thư mục backend.

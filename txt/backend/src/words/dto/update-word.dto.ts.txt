@@ -1,21 +1,8 @@
 HƯỚNG DẪN: backend/src/words/dto/update-word.dto.ts
 
-Vai trò:
-Mô tả dữ liệu được phép thay đổi khi cập nhật Word.
+UpdateWordDto dùng cho PATCH /words/:id. Các field optional vì client chỉ cần gửi
+phần muốn đổi, ví dụ {"meaning":"mua lại"}. Validation áp dụng cho field được gửi.
 
-Tại sao field đều optional:
-PATCH chỉ cần gửi các field muốn thay đổi, không cần gửi lại toàn bộ object.
-
-Ví dụ:
-PATCH /words/1
-{
-  "meaning": "học tập"
-}
-
-Service sẽ giữ các field không xuất hiện và chỉ thay đổi meaning.
-
-Khi thêm validation:
-Dùng @IsOptional() cùng decorator kiểu dữ liệu. Với NestJS có thể dùng PartialType(CreateWordDto) để tránh lặp định nghĩa.
-
-Nguyên tắc:
-DTO update không nên cho client tự sửa id nếu id nằm trong URL.
+Controller lấy id từ URL; service giữ các field không có trong body và chỉ gửi
+những field đã nhận xuống repository. Client không tự truyền id trong body.
+DTO giúp kiểm soát input, không tự lưu dữ liệu.

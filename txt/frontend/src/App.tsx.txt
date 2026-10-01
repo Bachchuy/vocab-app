@@ -1,34 +1,16 @@
 HƯỚNG DẪN: frontend/src/App.tsx
 
-Vai trò:
-Component gốc hiện hiển thị dashboard từ vựng, form thêm từ và danh sách lấy từ backend.
+App là component gốc điều phối thư viện, chi tiết từ, học flashcard và dashboard.
+State chính gồm danh sách từ, màn hình hiện tại, truy vấn/lọc/sắp xếp, form,
+modal, thông báo, trạng thái review và trạng thái tải/lưu.
 
-Mô hình dữ liệu:
-Word gồm id, english, meaning, example và category.
+Luồng ví dụ thêm từ:
+input -> onChange cập nhật form -> submit kiểm tra/trích trường -> saveWord()
+trong services/vocabularyStore.ts -> đóng form/thông báo/tải danh sách lại.
 
-State:
-- words: danh sách từ vựng lấy từ API.
-- form: dữ liệu người dùng đang nhập.
-- message: thông báo thành công hoặc lỗi.
+App dùng hooks như useState/useEffect/useMemo. UI có controlled inputs. WordForm,
+Library, WordDetail, Study, Dashboard là các khu vực UI trong source hiện tại.
 
-Hàm chính:
-- fetchWords: GET http://localhost:3000/words rồi cập nhật words.
-- handleChange: cập nhật một trường trong form.
-- handleSubmit: POST form lên backend, reset form và tải lại danh sách.
-
-React concepts cần học:
-- useState: quản lý state.
-- useEffect: gọi fetchWords khi component mount.
-- map: render nhiều word card.
-- controlled input: value và onChange được điều khiển bởi state.
-
-Luồng thêm từ:
-Người dùng nhập form -> handleChange -> handleSubmit -> POST API -> fetchWords -> UI cập nhật.
-
-Hướng OOP tiếp theo:
-Tách Word type vào types/Word.ts, API vào services/WordApiService.ts, form và card thành component riêng. App.tsx chỉ điều phối màn hình.
-
-Lỗi thường gặp:
-- Backend chưa chạy: fetch bị lỗi.
-- Sai port 3000: không lấy được dữ liệu.
-- API trả dữ liệu khác type Word: UI hiển thị sai.
+Khi học, tìm handler theo label/nút rồi theo hàm service. App.tsx còn khá lớn;
+đây là cơ hội refactor từng component/hook nhỏ. Thay đổi một phần rồi build và
+thử bằng tay, tránh viết lại toàn bộ khi chưa hiểu luồng.

@@ -1,9 +1,8 @@
 HƯỚNG DẪN THƯ MỤC: backend/src/words/dto
 
-DTO là Data Transfer Object, dùng để mô tả dữ liệu đi qua API boundary.
-
-File hiện tại:
-- create-word.dto.ts: dữ liệu tạo mới.
-- update-word.dto.ts: dữ liệu cập nhật một phần.
-
-DTO không phải database entity. DTO bảo vệ service khỏi input tùy ý từ client và là nơi phù hợp để thêm validation decorators.
+DTO (Data Transfer Object) mô tả dữ liệu đi qua HTTP boundary và gắn validation.
+- create-word.dto.ts: body tạo từ.
+- update-word.dto.ts: body cập nhật một phần.
+- word-form.dto.ts: một biến thể trong họ từ.
+ValidationPipe ở main.ts kiểm tra DTO trước khi request vào controller/service.
+DTO không phải schema database; schema nằm ở backend/prisma/schema.prisma.

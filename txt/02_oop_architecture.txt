@@ -1,33 +1,76 @@
-BƯỚC 2: KIẾN TRÚC OOP HIỆN TẠI
+BƯỚC 2: TỪ CODE MỘT FILE ĐẾN KIẾN TRÚC NHIỀU TẦNG
+===================================================
 
-Mục tiêu:
-Học OOP qua một feature chạy thật, đồng thời giữ code dễ thay đổi và bảo trì.
+Mục tiêu
+--------
+Hiểu vì sao ứng dụng tách thành nhiều file/module, mỗi tầng chịu trách nhiệm
+gì, và cách một thay đổi đi từ giao diện đến database. OOP không chỉ có class;
+đó còn là tổ chức trách nhiệm, đóng gói và cách các object hợp tác.
 
-1. Luồng hiện tại
-Browser -> frontend App.tsx -> HTTP fetch -> backend WordsController -> WordsService -> WordsRepository.
+Ví dụ khi còn một file
+----------------------
+Một script nhỏ có thể đọc input, kiểm tra, lưu vào biến rồi in kết quả. Khi app
+có nhiều màn hình, API, database và AI, một file khổng lồ khó sửa an toàn. Chia
+theo trách nhiệm làm ranh giới rõ hơn.
 
-2. Trách nhiệm từng lớp
-- Word: domain model mô tả một từ.
-- DTO: shape của dữ liệu request.
-- Controller: ánh xạ HTTP endpoint.
-- Service: kiểm tra và xử lý nghiệp vụ.
-- Repository: lưu và truy vấn dữ liệu.
-- Module: đăng ký dependency với NestJS.
+Luồng desktop hiện tại
+----------------------
+React App -> vocabularyStore -> Tauri SQLite -> local database
 
-3. OOP đang sử dụng
-- Encapsulation: repository giữ mảng words private.
-- Dependency Injection: Nest inject WordsRepository vào WordsService.
-- Abstraction theo tầng: service không cần biết controller gọi từ đâu.
-- Single Responsibility: mỗi lớp có một vai trò chính.
+Luồng web/backend
+-----------------
+React App -> vocabularyStore -> HTTP JSON -> Controller -> Service
+          -> Repository -> Prisma -> backend SQLite
 
-4. Frontend và OOP
-React component không phải class OOP truyền thống trong code hiện tại; App đang là function component dùng hooks. Để học sâu hơn, sau này tách API thành WordApiService class, model/type thành file riêng và UI thành WordForm/WordList.
+Các vai trò
+-----------
+- Component (App.tsx): hiển thị UI, giữ state và xử lý thao tác người dùng.
+- Service frontend (vocabularyStore.ts): hàm tải/lưu/ôn, che chi tiết adapter.
+- DTO: hình dạng input API và các quy tắc validation tại biên hệ thống.
+- Controller: ánh xạ HTTP method/path, đọc URL/body và gọi service.
+- Service backend: kiểm tra quy tắc nghiệp vụ, ví dụ chống trùng từ.
+- Repository: đọc/ghi database, chuyển dữ liệu ORM thành entity phía app.
+- Prisma: ORM, gửi truy vấn có kiểu tới SQLite backend.
+- Module: nhóm controller/providers và để Nest dependency injection tạo object.
 
-5. Không lạm dụng inheritance
-Project này ưu tiên composition và dependency injection. Chỉ dùng inheritance khi có quan hệ “is-a” rõ ràng; không tạo class cha chỉ để làm code phức tạp hơn.
+Khái niệm OOP nhìn thấy ở đây
+-----------------------------
+- Encapsulation: repository ẩn cách lưu; caller gọi hàm thay vì tự sửa SQL.
+- Abstraction: giao diện gọi saveWord mà không phải biết SQL cụ thể.
+- Single Responsibility: mỗi tầng có một lý do chính để thay đổi.
+- Dependency Injection: NestJS tạo dependency và truyền vào constructor.
+- Composition: AppModule ghép WordsModule, ReviewsModule, AiModule.
 
-6. Database chưa cần ở bước này
-WordsRepository đang dùng mảng in-memory. Khi đổi sang PostgreSQL, tạo implementation repository mới và giữ service/controller ổn định.
+React hiện dùng function components và hooks, không phải class component kiểu
+OOP cũ. TypeScript type/interface mô tả dữ liệu nhưng không tự tạo object lúc
+runtime. Không cần ép mọi thứ thành class; dùng cấu trúc đơn giản phù hợp.
 
-7. Quy tắc mở rộng
-Mỗi feature mới nên có module riêng. Không đưa logic words vào AppModule hoặc main.ts.
+Tách tầng không có nghĩa là luôn cần thêm interface hay design pattern. Chỉ
+tách khi nó làm trách nhiệm hoặc thay đổi dễ hiểu hơn. Ví dụ: không đặt SQL vào
+controller, không đặt HTTP fetch rải rác trong từng nút giao diện.
+
+Lần theo một request
+--------------------
+1. Tìm event handler trong App.tsx.
+2. Xem App gọi hàm nào trong vocabularyStore.ts.
+3. Với web: tìm URL method mà service gọi.
+4. Tìm route trong Controller.
+5. Đọc Service để biết quy tắc nghiệp vụ.
+6. Đọc Repository để biết dữ liệu được lưu thế nào.
+7. Đọc schema.prisma và migration để thấy cấu trúc bảng.
+
+Bài tập nhỏ
+-----------
+Chọn hành vi sửa nghĩa của một từ. Vẽ mũi tên qua từng file. Sau đó thử tìm
+xem thông báo lỗi được tạo ở tầng nào và tầng nào hiển thị nó. Làm tương tự cho
+desktop, rồi quan sát desktop đi thẳng đến SQLite thay vì qua NestJS CRUD API.
+
+OOP và database
+---------------
+Backend hiện không còn repository in-memory. WordsRepository gọi Prisma và dữ
+liệu tồn tại trong backend/prisma/dev.db. Ứng dụng desktop có SQLite riêng.
+Prisma schema mô tả model Word, ReviewState, ReviewHistory; migrations ghi lại
+cách database thay đổi qua các phiên bản.
+
+Hướng dẫn theo file nhỏ nằm dưới txt/backend và txt/frontend. Chúng là tài liệu
+giải thích; source thật nằm trong backend/src và frontend/src.

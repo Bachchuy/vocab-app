@@ -1,23 +1,9 @@
 HƯỚNG DẪN: backend/src/words/word.entity.ts
 
-Vai trò:
-Mô hình hóa một từ vựng bằng class Word.
+Word là kiểu dữ liệu trả về cho lớp ứng dụng. Có các trường từ vựng như english,
+meaning, example, category, source, notes, lemma/ngôn ngữ, tags, IPA, wordForms,
+synonyms, antonyms, collocations và toeicContext.
 
-Constructor nhận:
-- id: định danh.
-- english: từ tiếng Anh.
-- meaning: nghĩa tiếng Việt.
-- example: câu ví dụ.
-- category: nhóm từ.
-
-OOP:
-- Class gom dữ liệu thành một object có cấu trúc.
-- Constructor bảo đảm object được tạo với các giá trị ban đầu.
-- Có thể thêm method như isComplete(), updateMeaning() hoặc toResponse() sau này.
-
-Phân biệt entity và DTO:
-- Entity là object/domain model dùng trong logic.
-- DTO mô tả dữ liệu request từ bên ngoài.
-
-Khi dùng ORM:
-Class này có thể được thay bằng Prisma model hoặc domain entity riêng tùy kiến trúc.
+Đây không phải Prisma model; Prisma model nằm trong schema.prisma và lưu các
+mảng JSON dưới dạng chuỗi SQLite. DTO lại là kiểu/validation riêng cho request.
+Tách các khái niệm giúp API, domain và lưu trữ không bị nhầm làm một.

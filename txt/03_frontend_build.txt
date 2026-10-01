@@ -1,46 +1,84 @@
-BƯỚC 3: BUILD VÀ CHẠY FRONTEND HIỆN TẠI
+BƯỚC 3: FRONTEND REACT + TYPESCRIPT
+===================================
 
-1. Vị trí
-cd D:\code\vocab-app\frontend
+Vai trò frontend
+----------------
+Frontend là phần người dùng nhìn và tương tác. Nó hiển thị thư viện từ, form,
+chi tiết, ôn tập và dashboard. Frontend không nên tự quyết định cấu trúc SQL;
+nó gọi storage service với dữ liệu có kiểu.
 
-2. Cài package
-npm install
+Các file chính
+--------------
+frontend/index.html
+  HTML ban đầu, có div#root nơi React được gắn vào.
 
-3. Chạy development server
-npm run dev
+frontend/src/main.tsx
+  Entry point: nạp CSS, tạo React root và render App.
 
-Mở http://localhost:5173.
+frontend/src/App.tsx
+  Component gốc đang điều phối các màn hình, state, form, tìm kiếm, ôn tập,
+  thống kê và thông báo.
 
-4. Cấu trúc thực tế
-frontend/
-  index.html
-  package.json
-  vite.config.ts
-  tsconfig.json
-  src/
-    main.tsx
-    App.tsx
-    index.css
+frontend/src/services/vocabularyStore.ts
+  Type Word/ReviewState và các hàm truy cập dữ liệu. Khi chạy trong Tauri thì
+  thao tác CRUD/review dùng SQLite plugin; khi chạy web thì gọi HTTP API.
 
-5. Luồng giao diện
-main.tsx render App vào #root.
-App.tsx gọi GET http://localhost:3000/words khi mount.
-Form gửi POST /words.
-Danh sách words được render bằng map.
+frontend/src/index.css
+  Style toàn cục, layout, component và responsive.
 
-6. Build kiểm tra lỗi
-npm run build
+Luồng nhập form
+--------------
+1. input/textarea được điều khiển bởi React state.
+2. onChange cập nhật form state.
+3. submit kiểm tra trường bắt buộc, chuyển danh sách nhập thành array/object.
+4. saveWord gọi adapter ở vocabularyStore.ts.
+5. nếu thành công, đóng modal, hiện thông báo và tải lại danh sách.
+6. nếu lỗi, catch chuyển lỗi thành thông báo để người dùng xử lý.
 
-Lệnh này chạy tsc -b trước, sau đó vite build. Nếu terminal báo lỗi, ưu tiên sửa lỗi đó thay vì chỉ nhìn màu đỏ trong Explorer.
+Khái niệm React cần nắm
+-----------------------
+- Component: khối giao diện có thể nhận props.
+- State: dữ liệu thay đổi làm React render lại.
+- Props: dữ liệu/hàm cha truyền cho component con.
+- useState: tạo state.
+- useEffect: chạy tác vụ đồng bộ sau khi render, ví dụ tải ban đầu.
+- useMemo: tránh tính lại giá trị derived khi dependency không đổi.
+- Event handler: hàm phản hồi click, submit hoặc nhập liệu.
+- Controlled input: value luôn lấy từ state; onChange cập nhật state.
 
-7. Nếu trang trắng hoặc 404
-- Kiểm tra frontend/index.html tồn tại.
-- Kiểm tra script trỏ tới /src/main.tsx.
-- Kiểm tra frontend server đang chạy.
-- Reload browser.
+Tìm và hiểu một chức năng
+-------------------------
+Mở App.tsx, tìm label nút hoặc tên handler, rồi lần đến vocabularyStore.ts.
+Đừng bắt đầu bằng cách đọc toàn bộ file từ dòng đầu tới dòng cuối. Chọn một
+luồng, như save hoặc review, rồi lần theo các hàm có liên quan.
 
-8. Nếu không tải được dữ liệu
-Backend phải chạy ở http://localhost:3000. Kiểm tra trực tiếp http://localhost:3000/words.
+Chạy và build
+-------------
+  cd D:\code\vocab-app\frontend
+  npm ci
+  npm run dev
 
-9. Hướng mở rộng
-Tách App.tsx thành WordForm, WordList và WordApiService để giảm trách nhiệm của component gốc.
+Mở http://localhost:5173. Build production:
+
+  npm run build
+
+Build chạy tsc -b để kiểm tra TypeScript rồi Vite tạo bundle trong frontend/dist.
+Khi xem lỗi, đọc dòng file/line trong terminal; đừng chỉ dựa vào dấu đỏ IDE.
+
+Web hay desktop?
+----------------
+- Web dev dùng API NestJS. Backend phải chạy tại localhost:3000.
+- Tauri desktop dùng local SQLite cho từ vựng/ôn tập. Backend vẫn cần cho AI.
+- Hai database không tự đồng bộ; JSON transfer hiện chỉ chuyển từ vựng.
+
+Desktop commands
+----------------
+  npm run desktop:dev       chạy Tauri trong môi trường phát triển
+  npm run desktop:build     build app không tạo installer
+  npm run desktop:installer tạo installer NSIS Windows
+
+Mở rộng có chủ đích
+-------------------
+App.tsx còn khá nhiều trách nhiệm. Một bài tập học tốt là tách một khu vực nhỏ
+thành component, ví dụ WordForm hoặc Dashboard, mà không đổi hành vi. Sau đó
+build và tự thử thêm/sửa từ. Không refactor toàn bộ khi chỉ cần sửa một lỗi nhỏ.

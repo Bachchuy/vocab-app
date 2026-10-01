@@ -1,146 +1,128 @@
-LEXICON V1 - QUICK START FOR WINDOWS
-====================================
+LEXICON - QUICK START VÀ LUỒNG HOẠT ĐỘNG
+========================================
 
-What V1 is
-----------
-V1 is a usable local personal vocabulary dictionary running in a browser.
-It uses a real SQLite database through the NestJS backend. Data remains after
-restarting the backend because it is stored in the local Prisma SQLite database.
-The Tauri desktop shell is a separate prototype with its own local database;
-it does not yet import or sync the browser/backend database.
+Lexicon là gì
+-------------
+Ứng dụng từ điển cá nhân học từ vựng TOEIC. Người dùng lưu từ và ngữ cảnh,
+chỉnh sửa nghĩa/họ từ/quan hệ nghĩa, ôn bằng flashcard, rồi xem thống kê cơ bản.
+Có frontend React, backend NestJS, backend database SQLite/Prisma và app desktop
+Windows Tauri dùng SQLite riêng.
 
-V1 includes
------------
-- Add vocabulary entries.
-- Edit vocabulary entries.
-- Delete vocabulary entries.
-- Prevent duplicate spelling.
-- Save meaning, example, source, notes and category.
-- Search across word, meaning, example, source and notes.
-- Filter and sort the personal dictionary.
-- Open a vocabulary detail page.
-- Review saved words with a simple spaced-repetition scheduler.
-- Persist review state and review history in SQLite.
-- Import and export vocabulary entries as Lexicon JSON files.
-- Use the same REST API from the React frontend.
+Đọc hướng dẫn nhập môn
+----------------------
+txt/00_TONG_QUAN_VA_LUONG_HOC.txt giải thích kiến trúc và luồng dữ liệu theo
+cách dành cho người mới học code. Tài liệu này tập trung lệnh thực thi.
 
-Requirements
-------------
-- Windows 10 or Windows 11.
-- Node.js LTS.
-- npm.
+Yêu cầu
+-------
+- Windows 10/11.
+- Node.js và npm.
+- Để build desktop: Rust MSVC, Visual C++ Build Tools, Windows SDK và WebView2.
+- Để dùng gợi ý AI: OPENAI_API_KEY hợp lệ, Internet và backend đang chạy.
 
-Start V1 manually
------------------
-Open PowerShell window 1:
-
-  cd D:\code\vocab-app\backend
-  npm install
-  npm run db:generate
-  npm run db:migrate
-  npm run db:seed
-  npm run start:dev
-
-Open PowerShell window 2:
-
-  cd D:\code\vocab-app\frontend
-  npm install
-  npm run dev
-
-Open this address in the browser:
-
-  http://localhost:5173
-
-The backend API is:
-
-  http://localhost:3000
-
-Build a Windows installer
--------------------------
-From the frontend directory, run:
-
-  npm run desktop:installer
-
-The NSIS installer is written to:
-
-  frontend\src-tauri\target\release\bundle\nsis\Lexicon_0.1.0_x64-setup.exe
-
-The desktop app stores vocabulary in its own local SQLite database. It does
-not currently sync with the browser/backend database. JSON transfer currently
-exports and imports vocabulary entries; review scheduling stays in each app's
-database.
-
-Start V1 with one script
-------------------------
-From the repository root:
+Chạy nhanh web ở môi trường đã cài dependencies
+-----------------------------------------------
+Từ PowerShell tại D:\code\vocab-app:
 
   powershell -ExecutionPolicy Bypass -File .\start-v1.ps1
 
-The script installs missing dependencies, prepares the Prisma database, loads
-the existing starter vocabulary idempotently, and opens two PowerShell windows.
-Keep both windows open while using V1. To stop V1, close those two windows.
+Script cài dependencies còn thiếu, tạo/cập nhật Prisma Client, áp migrations,
+nạp starter data và mở terminal backend/frontend. Mở http://localhost:5173.
+Giữ hai cửa sổ chạy khi dùng web; đóng chúng để dừng server.
 
-Database
---------
-Development database:
+Chạy thủ công lần đầu
+---------------------
+Terminal 1 - backend:
 
-  backend\prisma\dev.db
+  cd D:\code\vocab-app\backend
+  npm ci
+  npm run db:generate
+  npx prisma migrate deploy
+  npm run db:seed
+  npm run start:dev
 
-Do not delete this file if you want to keep local vocabulary data.
-Do not commit it to Git.
+Terminal 2 - frontend:
 
-Useful checks
+  cd D:\code\vocab-app\frontend
+  npm ci
+  npm run dev
+
+Mở http://localhost:5173. Backend mặc định http://localhost:3000. Kiểm tra API:
+http://localhost:3000/words.
+
+Chạy desktop
 -------------
+Đã build installer trong project tại:
 
+  frontend\src-tauri\target\release\bundle\nsis\Lexicon_0.1.0_x64-setup.exe
+
+Môi trường phát triển có thể chạy:
+
+  cd D:\code\vocab-app\frontend
+  npm run desktop:dev
+
+Tạo installer mới:
+
+  npm run desktop:installer
+
+Desktop CRUD và review dùng SQLite local, không cần NestJS chạy. Nút gợi ý AI
+cần backend chạy tại localhost:3000. Web dev thì dùng NestJS cho CRUD/review.
+
+AI suggestions
+--------------
+Copy backend/.env.example thành backend/.env (nếu chưa có), đặt OPENAI_API_KEY
+rồi khởi động lại backend. Khóa API chỉ backend đọc. Nút AI điền gợi ý vào form;
+người dùng có thể sửa và phải bấm lưu. Hãy tự kiểm tra vì nội dung AI có thể sai.
+Chi tiết: docs/TOEIC_AI.md.
+
+Tính năng hiện tại
+------------------
+- Thêm, xem, sửa, xóa, tìm, lọc và sắp xếp từ.
+- Nghĩa, từ loại, IPA, ví dụ, chủ đề TOEIC, họ từ, synonyms, antonyms,
+  collocations, nguồn và ghi chú.
+- JSON import/export danh sách từ vựng.
+- Flashcard và review ratings again/hard/good/easy.
+- Review states/history và lịch ôn cơ bản.
+- Dashboard tổng từ, từ đến hạn, đã thuộc, hoạt động 7 ngày, chủ đề.
+
+API chính
+---------
+Words: GET/POST /words, GET/PATCH/DELETE /words/:id.
+Reviews: GET /reviews/due, GET /reviews/states,
+         POST /reviews/:wordId, GET /reviews/:wordId/history.
+AI:      POST /ai/suggest.
+
+Build xác minh
+--------------
   cd backend
-  npm run db:status
   npm run build
 
   cd ..\frontend
   npm run build
 
-Review API
-----------
+Build kiểm tra compile/type và đóng gói frontend; nó không thay cho kiểm tra
+thủ công từng luồng hay automated tests.
 
-  GET  http://localhost:3000/reviews/due
-  GET  http://localhost:3000/reviews/states
-  GET  http://localhost:3000/reviews/:wordId/history
-  POST http://localhost:3000/reviews/:wordId
+Database và dữ liệu
+-------------------
+- Backend DB: backend/prisma/dev.db theo DATABASE_URL trong backend/.env.
+- Desktop DB: SQLite riêng do Tauri SQL plugin quản lý.
+- Hai database chưa tự đồng bộ.
+- JSON transfer hiện chỉ chuyển mục từ, không chuyển review state/history.
+- Không xóa database cần giữ. Không commit .env hoặc API key.
+- Migration mới thêm các trường TOEIC theo hướng giữ nguyên bản ghi cũ.
 
-Example review body:
+Xử lý lỗi
+---------
+- Không tải từ trên web: kiểm tra backend localhost:3000 và GET /words.
+- Không tải từ desktop: xem thông báo; kiểm tra khởi tạo SQLite/capability.
+- Không lưu desktop: kiểm tra phiên bản installer mới có sql:allow-execute.
+- AI lỗi: backend phải chạy, API key/model phải đúng, mạng phải có Internet.
+- Prisma generate báo EPERM: đóng Node/Nest watcher đang giữ Prisma DLL rồi chạy lại.
+- Không xóa dev.db để “sửa lỗi” trước khi sao lưu.
 
-  {"rating":"easy"}
-
-What V1 does not include yet
-----------------------------
-- Import/export of review history (JSON transfer currently contains vocabulary entries).
-- Authentication and multiple users.
-- Collections.
-- Multiple senses per word.
-- Dictionary lookup and pronunciation.
-- CSV/JSON import and export.
-- Cloud sync.
-- AI features.
-- Automated tests.
-
-Recommended next milestones
-----------------------------
-1. Add automated backend and scheduler tests.
-2. Add collections and tags management.
-3. Add multiple senses and richer vocabulary details.
-4. Add JSON/CSV export and import.
-5. Add review-history backup/restore and verify the installer on a clean Windows machine.
-6. Add optional cloud sync only after local data ownership is stable.
-
-For future AI assistants
-------------------------
-Read this file first, then read:
-
-  docs\LEXICON_WINDOWS_DESKTOP_GUIDE.txt
-  docs\ROADMAP_VOCAB_APP.md
-
-Do not rewrite the project. Keep V1 working while adding one milestone at a
-time. Run both frontend and backend builds after changes. Treat SQLite as the
-source of truth for V1. The NSIS installer can be rebuilt with
-`npm run desktop:installer` from the frontend directory. Verify installation
-and data persistence on a clean Windows machine before distribution.
+Phạm vi chưa có
+---------------
+Chưa có đăng nhập, nhiều user, cloud sync, quiz, backup review history, automated
+tests, analytics nâng cao hay nguồn từ điển xác minh AI. Bộ cài đã được tạo nhưng
+nên tự cài và kiểm tra trên Windows trước khi phân phối cho người khác.

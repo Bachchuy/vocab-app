@@ -1,26 +1,8 @@
 HƯỚNG DẪN: frontend/vite.config.ts
 
-Vai trò:
-Cấu hình Vite cho frontend.
+Cấu hình Vite và plugin React. Vite phục vụ frontend dev và đóng gói bundle.
+Port dev được cấu hình trong file thật; URL backend lấy qua VITE_API_URL nếu có,
+ngược lại service dùng localhost:3000.
 
-Cấu hình hiện tại:
-- defineConfig: cung cấp type và cấu trúc cấu hình Vite.
-- react(): bật plugin React.
-- server.port = 5173: quy định port development server.
-
-Khi cần mở rộng:
-- Thêm proxy để frontend gọi API bằng đường dẫn /api.
-- Thêm alias như @/components.
-- Cấu hình build output.
-- Cấu hình preview server.
-
-Ví dụ proxy về sau:
-server: {
-  port: 5173,
-  proxy: {
-    '/api': 'http://localhost:3000'
-  }
-}
-
-Lưu ý:
-Đây là file cấu hình build/dev, không phải nơi viết component hoặc xử lý dữ liệu từ vựng.
+Không đặt nghiệp vụ từ vựng trong config. Proxy/alias chỉ nên thêm khi cần và
+cần cập nhật hướng dẫn nếu đổi URL API.

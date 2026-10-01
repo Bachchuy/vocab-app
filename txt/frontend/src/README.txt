@@ -1,18 +1,9 @@
 HƯỚNG DẪN THƯ MỤC: frontend/src
 
-Đây là nơi chứa source code React.
+- App.tsx: màn hình, state và event handlers chính.
+- main.tsx: khởi động React.
+- index.css: styling.
+- services/vocabularyStore.ts: types và adapter storage/API.
 
-Các file hiện tại:
-- App.tsx: component gốc, form và danh sách từ.
-- main.tsx: entry point khởi động React.
-- index.css: style toàn cục.
-
-Khi project lớn hơn, có thể thêm:
-- components/: component tái sử dụng.
-- pages/: màn hình theo route.
-- services/: class gọi API.
-- types/: interface/type dùng chung.
-- hooks/: custom hooks.
-
-Quy tắc:
-UI component tập trung hiển thị và interaction. API/data logic nên tách ra service để dễ test và bảo trì.
+Hiện App.tsx có nhiều component cùng file; có thể tách components/pages/hooks
+theo từng bước. Hãy theo một luồng chức năng trước khi refactor.

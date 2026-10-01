@@ -1,24 +1,8 @@
 HƯỚNG DẪN: frontend/src/index.css
 
-Vai trò:
-Chứa style toàn cục cho frontend.
+CSS toàn cục cho giao diện Lexicon: palette/font, sidebar, page layout, cards,
+form/modal, dashboard, detail, flashcards, toast và responsive breakpoints.
 
-Các khu vực chính:
-- :root: font, màu mặc định và tối ưu render chữ.
-- *: box-sizing để kích thước dễ dự đoán.
-- body: margin, chiều cao tối thiểu và background.
-- .app-shell: bố cục căn giữa màn hình.
-- .card: khung dashboard.
-- .word-form: layout form responsive.
-- .word-grid: grid hiển thị danh sách từ.
-- .word-item: style từng từ vựng.
-
-Responsive:
-Các grid dùng repeat(auto-fit, minmax(...)) để tự xuống dòng khi màn hình nhỏ.
-
-Khi thêm component:
-- Tạo class có tên rõ nghĩa.
-- Tránh style bằng inline nếu dùng lặp lại.
-- Giữ màu và spacing nhất quán.
-
-File này không xử lý dữ liệu hoặc gọi API; nó chỉ chịu trách nhiệm trình bày.
+File này chỉ điều khiển cách hiển thị, không lưu dữ liệu và không gọi API. Khi
+sửa class, kiểm tra cả cửa sổ rộng và hẹp; tránh làm vỡ modal hoặc scroll. Tên
+class thường gắn với component/khối tương ứng trong App.tsx.

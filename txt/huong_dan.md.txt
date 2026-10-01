@@ -1,23 +1,40 @@
 HƯỚNG DẪN: huong_dan.md
 
-Đây là tài liệu định hướng tổng thể của Vocab App.
+Đây là bản tóm tắt mục tiêu học và hiện trạng của Lexicon. File tổng quan dành
+cho người mới là txt/00_TONG_QUAN_VA_LUONG_HOC.txt; hãy đọc file đó trước.
 
-Mục tiêu:
-Xây nền tảng học từ vựng có flashcard, quiz, review, thống kê, authentication và AI trong các giai đoạn sau.
+Mục tiêu
+--------
+Từ một chương trình đơn giản trong một file, học cách tổ chức UI, service,
+backend, database, API, AI và desktop app thành các phần có trách nhiệm rõ ràng.
+Sản phẩm hiện là MVP từ điển TOEIC cá nhân, có ôn tập và dashboard.
 
-Cách học:
-HỌC -> CODE -> GẶP VẤN ĐỀ -> NGHIÊN CỨU -> SỬA -> TEST -> GHI LẠI
+Cách học
+--------
+Chọn một luồng nhỏ -> hỏi nó làm gì -> lần theo file -> sửa nhỏ -> build ->
+chạy app và thử -> ghi lại. AI nên giải thích và review; bạn cần tự diễn đạt
+lại được luồng trước khi nhận mình đã hiểu.
 
-Kiến trúc:
-Frontend React + TypeScript giao tiếp HTTP/JSON với backend NestJS. Backend được chia module và service/repository theo hướng OOP.
+Kiến trúc hiện tại
+------------------
+Frontend React/TypeScript/Vite. Adapter vocabularyStore chọn Tauri SQLite khi
+chạy desktop hoặc NestJS HTTP API khi chạy web. Backend NestJS chia words,
+reviews và ai modules; Prisma truy cập SQLite backend. AI key chỉ ở backend.
 
-Lộ trình nên theo:
-1. CRUD words với in-memory repository.
-2. Validation DTO.
-3. Tách component và API service frontend.
-4. PostgreSQL + Prisma.
-5. Authentication.
-6. Flashcard, quiz và spaced repetition.
-7. AI generation và recommendation.
+Các mốc đã có
+-------------
+CRUD, tìm/lọc/sắp xếp, import/export JSON, trường TOEIC, flashcard, lịch ôn
+cơ bản, dashboard, backend REST, Prisma migrations, desktop Tauri installer và
+endpoint AI gợi ý có thể chỉnh sửa.
 
-Đọc tài liệu mirror trong txt theo đường dẫn tương ứng với file thật.
+Hướng phát triển sau
+--------------------
+Kiểm thử tự động, tách App.tsx thành component/page/hook rõ hơn, đồng bộ database
+web/desktop, backup cả review history, authentication, quiz và thống kê lịch sử.
+Không làm tất cả cùng lúc; chọn một thay đổi có thể theo dõi từ UI tới storage.
+
+Trình tự tài liệu
+-----------------
+txt/README.txt -> txt/00_TONG_QUAN_VA_LUONG_HOC.txt -> 01 -> 02 -> 03 -> 04.
+Khi cần chạy: docs/V1_QUICKSTART.txt. Khi học AI: docs/TOEIC_AI.md.
+Tài liệu txt/frontend và txt/backend giải thích file source tương ứng.

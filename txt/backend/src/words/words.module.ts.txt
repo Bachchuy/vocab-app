@@ -1,21 +1,8 @@
 HƯỚNG DẪN: backend/src/words/words.module.ts
 
-Vai trò:
-Đóng gói toàn bộ chức năng vocabulary words thành một module độc lập.
+WordsModule gom WordsController và WordsService thành feature từ vựng. Service
+nhận WordsRepository bằng dependency injection; repository sử dụng PrismaService.
 
-Đăng ký:
-- WordsController: nhận HTTP request.
-- WordsService: xử lý nghiệp vụ.
-- WordsRepository: quản lý dữ liệu hiện tại.
-- exports WordsService: cho module khác dùng service nếu cần.
-
-Luồng dependency:
-Controller -> Service -> Repository
-
-Lợi ích:
-- Dễ thay thế repository in-memory bằng PrismaRepository sau này.
-- Dễ test từng lớp.
-- Dễ tách feature khi project lớn.
-
-Khi thêm class mới:
-Phải thêm class vào providers nếu Nest cần tạo và inject class đó.
+Modules giúp Nest biết provider nào cần tạo và controller nào phục vụ route.
+Khi thêm provider cần đăng ký đúng module hoặc export/import giữa modules. Không
+nên đưa mọi chức năng vào AppModule.

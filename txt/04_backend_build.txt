@@ -1,53 +1,92 @@
-BƯỚC 4: BUILD VÀ CHẠY BACKEND HIỆN TẠI
+BƯỚC 4: BACKEND NESTJS, API VÀ DATABASE
+========================================
 
-1. Vị trí
-cd D:\code\vocab-app\backend
+Vai trò backend
+---------------
+Backend nhận request HTTP, kiểm tra input, thực hiện nghiệp vụ và lưu/đọc dữ
+liệu. Web frontend gọi backend để quản lý từ và review. Desktop hiện lưu CRUD
+và review ở SQLite cục bộ; backend desktop được dùng cho gợi ý AI.
 
-2. Cài package
-npm install
+Các module hiện có
+------------------
+- WordsModule: CRUD từ vựng.
+- ReviewsModule: trạng thái, lịch đến hạn và lịch sử ôn.
+- AiModule: endpoint gợi ý từ vựng.
+- PrismaService: kết nối Prisma với database backend.
 
-3. Chạy development server
-npm run start:dev
+Luồng backend
+-------------
+main.ts khởi động Nest -> AppModule lắp module -> Controller nhận route
+-> DTO validation -> Service nghiệp vụ -> Repository -> Prisma -> SQLite.
 
-Backend chạy ở:
-http://localhost:3000
+Controller không nên chứa truy vấn SQL hoặc logic học. Service giữ quy tắc,
+Repository giữ chi tiết đọc/ghi. DTO kiểm tra hình dạng body tại API boundary.
 
-4. Cấu trúc thực tế
-src/
-  main.ts
-  app.module.ts
-  words/
-    word.entity.ts
-    words.module.ts
-    words.controller.ts
-    words.service.ts
-    words.repository.ts
-    dto/
-      create-word.dto.ts
-      update-word.dto.ts
+API hiện có
+-----------
+Từ vựng:
+  GET    /words
+  GET    /words/:id
+  POST   /words
+  PATCH  /words/:id
+  DELETE /words/:id
 
-5. API hiện có
-- GET /words
-- GET /words/:id
-- POST /words
-- PATCH /words/:id
-- DELETE /words/:id
+Ôn tập:
+  GET  /reviews/due
+  GET  /reviews/states
+  POST /reviews/:wordId       body ví dụ: {"rating":"easy"}
+  GET  /reviews/:wordId/history
 
-6. Kiểm tra nhanh
-Mở trình duyệt tại http://localhost:3000/words. Nếu thấy JSON danh sách words, backend đã chạy.
+AI:
+  POST /ai/suggest             body gồm english, meaning tùy chọn, source tùy chọn
 
-7. Build kiểm tra TypeScript
-npm run build
+Cơ sở dữ liệu
+-------------
+backend/prisma/schema.prisma mô tả Word, ReviewState và ReviewHistory. SQLite
+backend hiện ở backend/prisma/dev.db (theo DATABASE_URL trong backend/.env).
+Review ghi state hiện tại và từng bản ghi lịch sử. Service dùng transaction để
+lưu state/history cùng một lượt review. Migration là các thay đổi schema có thứ
+tự; chạy migration deploy để cập nhật database mà không tạo lại toàn bộ bảng.
 
-Kết quả đúng là Nest compile không có error và tạo thư mục dist.
+Cài, chuẩn bị database và chạy backend
+--------------------------------------
+  cd D:\code\vocab-app\backend
+  npm ci
+  npm run db:generate
+  npx prisma migrate deploy
+  npm run db:seed
+  npm run start:dev
 
-8. Database
-Chưa cần database. Repository đang dùng mảng trong bộ nhớ để tập trung học module, controller, service, repository và dependency injection. Dữ liệu mất khi restart server.
+Backend mặc định tại http://localhost:3000. Mở /words để xem JSON. Nếu prisma
+generate báo EPERM trên Windows, đóng process/watch đang giữ file Prisma DLL,
+rồi thử lại. Không xóa dev.db nếu cần giữ dữ liệu.
 
-9. Khi nào thêm database
-Khi CRUD in-memory ổn định, thêm Prisma/PostgreSQL. Thay tầng repository trước, không đưa truy vấn database vào controller.
+Bật AI
+------
+Copy backend/.env.example thành backend/.env nếu chưa có. Đặt OPENAI_API_KEY
+trong .env rồi restart backend. Không đặt key trong React, không commit .env.
+AI cần Internet và API usage được bật cho key. Xem docs/TOEIC_AI.md.
 
-10. Lỗi thường gặp
-- Port 3000 đang bị chiếm: dừng process cũ hoặc đổi PORT.
-- Frontend bị CORS: kiểm tra app.enableCors trong main.ts.
-- File đỏ: chạy npm run build trong backend để lấy lỗi thật.
+Validation và duplicate
+-----------------------
+main.ts bật ValidationPipe toàn cục. DTO dùng class-validator để kiểm tra input.
+WordsService trim trường cần thiết, chặn từ tiếng Anh trùng và trả lỗi HTTP có
+ý nghĩa. Controller có ParseIntPipe chuyển id URL thành số và báo lỗi nếu sai.
+
+Build và kiểm tra
+-----------------
+  npm run build
+
+Nest compile TypeScript vào backend/dist. Đây là kiểm tra compile, không thay thế
+việc thử endpoint. Nếu frontend không tải data, kiểm tra backend đang chạy và
+thử trực tiếp http://localhost:3000/words.
+
+Khái niệm học được
+-----------------
+- REST: tài nguyên words/reviews được thao tác theo HTTP methods.
+- DTO/validation: boundary ngăn input tùy ý đi sâu vào nghiệp vụ.
+- Dependency injection: Nest tạo và cấp các service phụ thuộc.
+- ORM: Prisma tạo truy vấn có type từ schema.
+- Transaction: nhóm các thao tác database để lưu review nhất quán.
+- Migration: thay đổi cấu trúc database theo phiên bản.
+- Environment variable: cấu hình/key không hard-code vào source.
