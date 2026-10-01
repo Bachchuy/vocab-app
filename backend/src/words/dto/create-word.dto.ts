@@ -1,11 +1,19 @@
 // Import các decorator dùng để kiểm tra dữ liệu request.
-import { ArrayMaxSize, IsArray, IsNotEmpty, IsOptional, IsString, MaxLength, ValidateNested } from 'class-validator';
+import { ArrayMaxSize, IsArray, IsIn, IsNotEmpty, IsOptional, IsString, MaxLength, ValidateNested } from 'class-validator';
 import { Type } from 'class-transformer';
 import { WordFormDto } from './word-form.dto';
+import { VocabularySenseDto } from './vocabulary-sense.dto';
+import { LearningGoalDto } from './learning-goal.dto';
 
 // Mô tả dữ liệu bắt buộc khi tạo một từ mới.
 export class CreateWordDto {
-  // Từ tiếng Anh phải là chuỗi, không rỗng và tối đa 100 ký tự.
+  @IsOptional()
+  @IsString()
+  @IsNotEmpty()
+  @MaxLength(100)
+  term?: string;
+
+  // Mục từ trong ngôn ngữ đang học.
   @IsString()
   @IsNotEmpty()
   @MaxLength(100)
@@ -56,10 +64,19 @@ export class CreateWordDto {
   @MaxLength(10)
   explanationLanguage?: string;
 
+  @IsOptional() @IsString() @IsIn(['A1', 'A2', 'B1', 'B2', 'C1', 'C2', ''])
+  cefrLevel?: string;
+
   @IsOptional()
   @IsString()
   @MaxLength(50)
   partOfSpeech?: string;
+
+  @IsOptional() @IsString() @MaxLength(30)
+  register?: string;
+
+  @IsOptional() @IsString() @MaxLength(30)
+  frequency?: string;
 
   @IsOptional()
   @IsArray()
@@ -69,8 +86,29 @@ export class CreateWordDto {
   @IsOptional() @IsString() @MaxLength(80)
   pronunciation?: string;
 
+  @IsOptional() @IsString() @MaxLength(80)
+  pronunciationUS?: string;
+
+  @IsOptional() @IsString() @MaxLength(80)
+  pronunciationUK?: string;
+
+  @IsOptional() @IsString() @MaxLength(50)
+  syllables?: string;
+
+  @IsOptional() @IsString() @MaxLength(80)
+  stressPattern?: string;
+
+  @IsOptional() @IsString() @MaxLength(500)
+  etymology?: string;
+
+  @IsOptional() @IsString() @MaxLength(500)
+  usageNotes?: string;
+
   @IsOptional() @IsArray() @ArrayMaxSize(20) @ValidateNested({ each: true }) @Type(() => WordFormDto)
   wordForms?: WordFormDto[];
+
+  @IsOptional() @IsArray() @ArrayMaxSize(20) @ValidateNested({ each: true }) @Type(() => VocabularySenseDto)
+  senses?: VocabularySenseDto[];
 
   @IsOptional() @IsArray() @ArrayMaxSize(30) @IsString({ each: true })
   synonyms?: string[];
@@ -81,6 +119,12 @@ export class CreateWordDto {
   @IsOptional() @IsArray() @ArrayMaxSize(30) @IsString({ each: true })
   collocations?: string[];
 
+  @IsOptional() @IsArray() @ArrayMaxSize(20) @IsString({ each: true })
+  grammarPatterns?: string[];
+
+  @IsOptional() @IsArray() @ArrayMaxSize(20) @ValidateNested({ each: true }) @Type(() => LearningGoalDto)
+  learningGoals?: LearningGoalDto[];
+
   @IsOptional() @IsString() @MaxLength(200)
-  toeicContext?: string;
+  context?: string;
 }

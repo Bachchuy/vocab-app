@@ -1,0 +1,1 @@
+ALTER TABLE "Word" RENAME COLUMN "toeicContext" TO "context";
