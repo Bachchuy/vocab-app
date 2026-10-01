@@ -10,19 +10,20 @@ export class SuggestWordUseCase {
   constructor(@Inject(AI_PROVIDER) private readonly aiProvider: AiProvider) {}
 
   async execute(dto: SuggestWordDto) {
-    const english = dto.english?.trim();
-    if (!english) throw new BadRequestException('Hãy nhập từ tiếng Anh cần gợi ý.');
+    const term = dto.term?.trim();
+    if (!term) throw new BadRequestException('Hãy nhập mục từ cần gợi ý.');
 
     const result = await this.aiProvider.generateStructured({
       instructions: wordSuggestionInstructions,
       input: {
-        english,
+        term,
         existingMeaning: dto.meaning?.trim() ?? '',
         sourceContext: dto.source?.trim() ?? '',
-        targetLanguage: 'Vietnamese',
-        exam: 'TOEIC',
+        sourceLanguage: dto.sourceLanguage?.trim() || 'en',
+        explanationLanguage: dto.explanationLanguage?.trim() || 'vi',
+        learningGoal: dto.learningGoal?.trim() || 'general vocabulary',
       },
-      schemaName: 'toeic_vocabulary_suggestion',
+      schemaName: 'vocabulary_suggestion',
       schema: wordSuggestionSchema,
       maxOutputTokens: 1200,
     });
