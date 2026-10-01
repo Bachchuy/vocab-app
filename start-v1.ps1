@@ -33,8 +33,9 @@ if (-not (Test-Path (Join-Path $frontend 'node_modules'))) {
     Pop-Location
 }
 
-Start-Process powershell.exe -WorkingDirectory $backend -ArgumentList '-NoExit', '-ExecutionPolicy', 'Bypass', '-Command', 'npm run start:dev'
-Start-Process powershell.exe -WorkingDirectory $frontend -ArgumentList '-NoExit', '-ExecutionPolicy', 'Bypass', '-Command', 'npm run dev'
+$powershell = Join-Path $PSHOME 'powershell.exe'
+Start-Process -FilePath $powershell -WorkingDirectory $backend -ArgumentList '-NoExit', '-NoProfile', '-ExecutionPolicy', 'Bypass', '-Command', 'npm run start:dev'
+Start-Process -FilePath $powershell -WorkingDirectory $frontend -ArgumentList '-NoExit', '-NoProfile', '-ExecutionPolicy', 'Bypass', '-Command', 'npm run dev'
 
 Write-Host 'Lexicon V1 is starting.'
 Write-Host 'Backend:  http://localhost:3000'
