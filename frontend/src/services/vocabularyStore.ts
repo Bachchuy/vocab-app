@@ -1,4 +1,5 @@
 import Database from '@tauri-apps/plugin-sql';
+import { suggestWordWithAi } from '../ai/aiService';
 
 export type Word = {
   id: number;
@@ -89,13 +90,7 @@ function parseWord(row: Record<string, unknown>): Word {
 }
 
 export async function suggestWord(term: string, meaning = '', source = '', sourceLanguage = 'en', explanationLanguage = 'vi', learningGoal = ''): Promise<WordSuggestion> {
-  const response = await fetch(`${API}/ai/suggest`, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ term, meaning, source, sourceLanguage, explanationLanguage, learningGoal }) });
-  if (!response.ok) {
-    const error = await response.json().catch(() => ({})) as { message?: string | string[] };
-    const message = Array.isArray(error.message) ? error.message.join(', ') : error.message;
-    throw new Error(message ?? `Gợi ý AI thất bại (HTTP ${response.status})`);
-  }
-  return response.json() as Promise<WordSuggestion>;
+  return suggestWordWithAi({ term, meaning, source, sourceLanguage, explanationLanguage, learningGoal });
 }
 
 export async function listWords(): Promise<Word[]> {

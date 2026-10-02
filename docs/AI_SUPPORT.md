@@ -1,118 +1,65 @@
-# Hỗ trợ AI trong Lexicon
+# AI support trong Lexicon
 
-Tài liệu này mô tả kiến trúc AI hiện tại và cách mở rộng. Mục tiêu trước mắt là hỗ trợ điền các trường của một mục từ. Về sau, Lexicon có thể thêm các tác vụ như tạo câu hỏi ôn tập hoặc giải thích đáp án mà không biến một dịch vụ thành nơi chứa tất cả prompt và quy tắc nghiệp vụ.
+Tài liệu này ghi lại cách bật AI bằng API key cá nhân, luồng gợi ý từ hiện tại và cách mở rộng sang provider hoặc tác vụ AI khác. AI là tùy chọn: tra cứu, lưu từ và ôn tập vẫn hoạt động khi chưa cấu hình key.
 
-## Nguyên tắc thiết kế
+## Hướng dẫn cho người dùng
 
-- Giao diện chỉ gọi API của Lexicon. Khóa của nhà cung cấp AI chỉ được đọc ở backend.
-- Mỗi mục đích AI là một tính năng/use case riêng, có DTO, prompt, schema và bước kiểm tra đầu ra riêng.
-- Provider là lớp tích hợp với API mô hình. Provider không biết nghiệp vụ từ vựng và không quyết định dữ liệu nào hợp lệ.
-- Structured output giúp định hình phản hồi, nhưng backend vẫn phải kiểm tra dữ liệu trước khi trả về giao diện.
-- AI chỉ đề xuất nội dung. Người học xem lại, chỉnh sửa rồi mới lưu qua luồng lưu từ hiện có.
-- Không xây endpoint nhận prompt tùy ý từ giao diện. Backend phải kiểm soát prompt, schema, quyền gọi và giới hạn của từng tác vụ.
+1. Mở **Cài đặt AI** trong thanh bên.
+2. Mở [Google AI Studio](https://aistudio.google.com/app/apikey), đăng nhập và tạo Gemini API key.
+3. Dán key vào Lexicon, chọn **Lưu API key**, rồi chọn **Kiểm tra kết nối**.
+4. Trong biểu mẫu từ, nhập từ cần học và chọn **Gợi ý bằng AI**. Xem lại nội dung, chỉnh sửa nếu cần, rồi tự lưu.
 
-## Cấu trúc mã nguồn
+Lexicon không thu phí AI. Yêu cầu dùng quota và điều khoản của tài khoản/provider người dùng. Gemini 3.1 Flash-Lite hiện liệt kê Free Tier; hạn mức và điều khoản có thể thay đổi. Với Free Tier, dữ liệu gửi tới Google có thể được dùng để cải thiện sản phẩm. Từ, nghĩa đang có và câu ngữ cảnh được gửi trực tiếp đến Google khi người dùng yêu cầu gợi ý. Không gửi dữ liệu nhạy cảm. Đọc [điều khoản Gemini API](https://ai.google.dev/gemini-api/terms) và thông tin xử lý dữ liệu của Google trước khi dùng.
+
+Ứng dụng Windows lưu key trong Windows Credential Manager. Trong chế độ chạy trình duyệt để phát triển, key chỉ được giữ trong `sessionStorage` của tab hiện tại; đây không phải nơi lưu trữ bảo mật và sẽ mất khi đóng tab. Key cần thiết trong bộ nhớ của tiến trình khi gửi request và người dùng có thể thu hồi key từ Google AI Studio. Không ghi key vào log, dữ liệu từ vựng, source code hoặc tệp cấu hình được commit.
+
+## Cấu trúc hiện tại
 
 ```text
-backend/src/ai/
-├── ai.controller.ts
-├── ai.module.ts
-├── contracts/
-│   └── ai-provider.ts
+frontend/src/ai/
+├── contracts.ts                   # Hợp đồng provider và yêu cầu AI dùng chung
+├── providerRegistry.ts             # Đăng ký adapter và provider mặc định
+├── aiSettings.ts                   # Đọc/lưu/xóa key qua Tauri, browser fallback
+├── aiService.ts                    # Điểm vào cho UI
 ├── providers/
-│   └── openai-responses.provider.ts
+│   └── gemini.provider.ts          # HTTP, timeout và chuyển đổi JSON Schema cho Gemini
 └── features/
-    └── word-suggestions/
-        ├── suggest-word.dto.ts
-        ├── suggest-word.use-case.ts
-        ├── word-suggestion.prompt.ts
-        ├── word-suggestion.schema.ts
-        └── word-suggestion.validator.ts
+    └── word-suggestions.ts         # Prompt, schema, kiểm tra và chuẩn hóa gợi ý từ
+
+frontend/src-tauri/src/lib.rs       # Tauri commands và Windows Credential Manager
+frontend/src/services/vocabularyStore.ts  # Cầu nối tương thích với biểu mẫu từ hiện tại
 ```
 
-## Vai trò của từng phần
-
-| Thành phần                               | Trách nhiệm                                                                                |
-| ---------------------------------------- | ------------------------------------------------------------------------------------------ |
-| `ai.controller.ts`                       | Nhận yêu cầu HTTP và chuyển cho use case.                                                  |
-| `contracts/ai-provider.ts`               | Khai báo hợp đồng provider, độc lập với nhà cung cấp cụ thể.                               |
-| `providers/openai-responses.provider.ts` | Gọi Responses API, áp dụng thời gian chờ và chuyển lỗi nhà cung cấp thành lỗi API phù hợp. |
-| `features/<feature>/*.dto.ts`            | Kiểm tra dữ liệu đầu vào từ client.                                                        |
-| `*.prompt.ts`                            | Chứa hướng dẫn riêng của tính năng.                                                        |
-| `*.schema.ts`                            | Mô tả cấu trúc đầu ra yêu cầu từ mô hình.                                                  |
-| `*.validator.ts`                         | Kiểm tra và chuẩn hóa phản hồi không đáng tin cậy.                                         |
-| `*.use-case.ts`                          | Điều phối nghiệp vụ, ghép input, prompt, schema và validator.                              |
-
-## Luồng gợi ý điền từ
+## Luồng xử lý
 
 ```text
-Biểu mẫu từ vựng React
-  → POST /ai/suggest
-  → AiController
-  → SuggestWordUseCase
-      → OpenAiResponsesProvider
-      → validateWordSuggestion
-  → JSON gợi ý về giao diện
-  → người học xem lại và chỉnh sửa
-  → thao tác Lưu từ gọi luồng lưu hiện có
+Biểu mẫu từ → vocabularyStore.suggestWord
+  → aiService → feature word-suggestions
+  → providerRegistry → GeminiProvider
+  → Gemini API → kiểm tra/chuẩn hóa kết quả
+  → điền bản nháp vào biểu mẫu → người dùng xem lại và lưu
 ```
 
-Giao diện gọi API qua `suggestWord` trong `frontend/src/services/vocabularyStore.ts`. Hàm `requestSuggestion` trong `frontend/src/App.tsx` đưa các trường gợi ý vào biểu mẫu. AI không tự động lưu dữ liệu. Route `/ai/suggest` được giữ nguyên để client hiện tại tiếp tục hoạt động.
+Provider chỉ lo giao tiếp với model và định dạng giao thức. Tác vụ `word-suggestions` sở hữu prompt, schema đầu ra và validator nghiệp vụ. Phản hồi bên ngoài luôn được xem là không đáng tin cậy và được kiểm tra trước khi đưa vào biểu mẫu. AI không tự lưu dữ liệu.
 
-## Hợp đồng yêu cầu hiện tại
+## Thêm hoặc thay provider
 
-```json
-{
-  "term": "acquire",
-  "meaning": "",
-  "source": "The company acquired a smaller competitor.",
-  "sourceLanguage": "en",
-  "explanationLanguage": "vi",
-  "learningGoal": "general vocabulary"
-}
-```
+`AiProvider` trong `contracts.ts` cung cấp `testConnection` và `generateStructured`; nó không có hàm riêng cho từ vựng. Khi tích hợp provider mới:
 
-Phản hồi có thể gồm nghĩa, câu ví dụ, CEFR, từ loại, văn phong, tần suất, phát âm, âm tiết, trọng âm, các sense, dạng từ, từ đồng nghĩa, từ trái nghĩa, collocation, mẫu ngữ pháp và ngữ cảnh. Cặp ngôn ngữ cùng `learningGoal` giúp một luồng hoạt động cho nhiều ngôn ngữ và mục tiêu học. TOEIC hoặc IELTS chỉ là giá trị mục tiêu tùy chọn.
+1. Tạo adapter trong `providers/`, hiện thực `AiProvider`.
+2. Chuyển cấu trúc schema dùng chung sang định dạng yêu cầu của provider đó, xử lý timeout, lỗi xác thực, hạn mức và dữ liệu lỗi.
+3. Đăng ký adapter trong `providerRegistry.ts` và cập nhật lựa chọn provider trong cấu hình AI.
+4. Giữ prompt, schema đầu ra và validator theo từng tính năng trong `features/`.
+5. Cập nhật phần chọn provider, lưu key riêng theo provider (nếu cần) và hướng dẫn UI.
 
-## Cách thêm một tác vụ AI mới
+Để dùng dịch vụ backend do Lexicon vận hành hoặc mô hình chạy cục bộ sau này, thêm adapter thực thi cùng hợp đồng. Tính năng và biểu mẫu không cần gọi API provider trực tiếp. Mỗi tác vụ khác (ví dụ tạo câu hỏi ôn tập) nên có feature riêng với input, prompt, schema và validator riêng; không đưa prompt tùy ý vào provider registry.
 
-Ví dụ thêm tính năng giải thích đáp án:
+## Bảo trì và giới hạn
 
-1. Tạo thư mục `backend/src/ai/features/answer-explanations/`.
-2. Định nghĩa DTO cho dữ liệu đầu vào, kèm giới hạn độ dài và kiểu dữ liệu.
-3. Viết prompt trong `answer-explanation.prompt.ts`. Xem dữ liệu từ client là dữ liệu, không phải chỉ thị thay thế prompt.
-4. Định nghĩa schema phản hồi trong `answer-explanation.schema.ts`.
-5. Viết validator riêng để kiểm tra trường, độ dài, số lượng và giá trị hợp lệ.
-6. Tạo `ExplainAnswerUseCase`, inject `AI_PROVIDER`, gọi `generateStructured`, rồi chạy validator.
-7. Đăng ký use case trong `AiModule` và thêm route theo hành động, ví dụ `POST /ai/explain-answer`.
-8. Viết service client và giao diện riêng; không dùng endpoint gợi ý từ vựng cho tác vụ khác.
+- Khi đổi `WordSuggestion`, cập nhật schema, validator, kiểu `WordSuggestion` ở `vocabularyStore.ts`, ánh xạ trong biểu mẫu và tài liệu này.
+- Giữ provider secrets ngoài log và không lưu prompt/đầu ra nếu chưa có yêu cầu sản phẩm rõ ràng.
+- BYOK không có nghĩa API key được bảo vệ khỏi chính thiết bị đang sử dụng: người dùng tự sở hữu và chịu trách nhiệm quota/billing của key. Hướng dẫn cần nhắc giới hạn quota, thu hồi key và quyền riêng tư.
+- Key người dùng không được gửi tới backend Lexicon trong luồng Gemini hiện tại. Nếu sau này chuyển sang backend do Lexicon vận hành, hãy dùng xác thực, giới hạn tốc độ, quản lý bí mật server-side và cơ chế kiểm soát chi phí.
+- API và gói miễn phí thay đổi theo provider; không hứa quota hay chi phí bằng 0 trong UI/tài liệu.
 
-Tác vụ mới có thể dùng lại provider và xử lý lỗi mạng chung, nhưng phải giữ prompt, hợp đồng input và hợp đồng output riêng. Khi cần đổi nhà cung cấp, tạo adapter mới thực thi `AiProvider` rồi thay binding `AI_PROVIDER` trong module. Tính năng/use case không cần biết request được gửi đến OpenAI hay nhà cung cấp nào.
-
-Không tạo abstraction lớn hơn nhu cầu thực tế. Chưa cần workflow engine, agent framework, cơ sở dữ liệu prompt hay hệ thống plugin chỉ để thêm một tác vụ có input/output rõ ràng.
-
-## Cấu hình chạy
-
-Trong `backend/.env`:
-
-```dotenv
-OPENAI_API_KEY=your-server-side-key
-OPENAI_MODEL=gpt-5-mini
-```
-
-`OPENAI_API_KEY` không được đặt trong biến `VITE_*`, mã frontend, gói Tauri hoặc trả về trong API. `.env.example` chỉ là mẫu và không chứa khóa thật. Backend mặc định gọi Responses API, yêu cầu JSON Schema strict, chờ tối đa 45 giây và đặt `store: false`. Có thể đổi model bằng `OPENAI_MODEL` mà không sửa use case.
-
-## Lỗi và giới hạn hiện tại
-
-- Input được kiểm tra bởi `ValidationPipe` toàn cục và DTO của từng tính năng.
-- Phản hồi mô hình được kiểm tra lại ở backend trước khi gửi tới trình duyệt.
-- Lỗi khóa, giới hạn tốc độ/hạn mức, thời gian chờ, lỗi HTTP và phản hồi không hợp lệ được chuyển thành lỗi API; chi tiết nội bộ của nhà cung cấp không gửi cho client.
-- Giao diện hiển thị lỗi và cho phép thử lại. Lỗi AI không làm mất dữ liệu người học đã nhập.
-- Endpoint AI hiện chưa có xác thực người dùng hoặc giới hạn tốc độ theo client. Trước khi công khai backend trên Internet, cần thêm xác thực, phân quyền và giới hạn tốc độ ở server để kiểm soát chi phí. CORS không phải cơ chế bảo vệ API.
-- Nội dung AI có thể sai. Người học cần kiểm tra nghĩa, IPA, ví dụ và quan hệ từ trước khi sử dụng.
-
-## Hướng dẫn bảo trì
-
-Khi đổi hợp đồng đầu ra, cập nhật đồng thời schema, validator, kiểu phản hồi frontend `WordSuggestion`, thao tác điền biểu mẫu và tài liệu API. Khi đổi giới hạn trường, kiểm tra DTO tạo/cập nhật từ trong `backend/src/words/dto/` để giữ tương thích. Không trả nguyên phản hồi thô của provider cho client.
-
-Các thay đổi ở `txt/` là bản hướng dẫn hoặc mã nguồn tham khảo dạng `.txt`; mã chạy của backend và frontend nằm trong `backend/src/` và `frontend/src/`.
+Backend Nest cũ trong `backend/src/ai/` hiện là adapter server-side OpenAI riêng, không nằm trên luồng BYOK của giao diện hiện tại. Có thể giữ adapter này làm phương án triển khai server sau này, nhưng cần đồng bộ hợp đồng và tính năng trước khi nối lại.
