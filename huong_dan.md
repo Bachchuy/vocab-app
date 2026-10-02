@@ -1,5 +1,7 @@
 # LỘ TRÌNH XÂY ỨNG DỤNG HỌC TỪ VỰNG BẰNG AI
 
+> **Lưu ý về trạng thái:** Đây là curriculum kỹ thuật đời đầu với nhiều ý tưởng và stack tương lai, không phải mô tả hiện trạng chính thức. Để hiểu repo hiện tại, bắt đầu từ [README.md](README.md) và [mục lục tài liệu](docs/README.md). Tài liệu này được giữ làm tài liệu học tham khảo.
+
 ## 0. Mục tiêu của project
 
 Bạn không nên xem đây đơn thuần là một app flashcard.

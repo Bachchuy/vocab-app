@@ -48,12 +48,14 @@ export type ReviewRating = 'again' | 'hard' | 'good' | 'easy';
 export type WordTransferFile = { format: 'lexicon-words'; version: 1; exportedAt: string; words: Word[] };
 
 const API = import.meta.env.VITE_API_URL ?? 'http://localhost:3000';
+// Keep callers independent from the runtime: desktop uses app-local SQLite; browser uses the API.
 const isDesktop = () => '__TAURI_INTERNALS__' in window;
 let databasePromise: Promise<Database> | undefined;
 
 async function database(): Promise<Database> {
   if (!databasePromise) {
     databasePromise = Database.load('sqlite:lexicon.sqlite').then(async (db) => {
+      // Add missing columns in place so existing desktop libraries survive app upgrades.
       await db.execute(`CREATE TABLE IF NOT EXISTS words (id INTEGER PRIMARY KEY AUTOINCREMENT, english TEXT NOT NULL, meaning TEXT NOT NULL, example TEXT NOT NULL DEFAULT '', category TEXT NOT NULL DEFAULT 'general', source TEXT NOT NULL DEFAULT '', notes TEXT NOT NULL DEFAULT '', lemma TEXT NOT NULL, sourceLanguage TEXT NOT NULL DEFAULT 'en', explanationLanguage TEXT NOT NULL DEFAULT 'vi', cefrLevel TEXT NOT NULL DEFAULT '', partOfSpeech TEXT NOT NULL DEFAULT '', register TEXT NOT NULL DEFAULT '', frequency TEXT NOT NULL DEFAULT '', tags TEXT NOT NULL DEFAULT '[]', dateAdded TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP, pronunciation TEXT NOT NULL DEFAULT '', pronunciationUS TEXT NOT NULL DEFAULT '', pronunciationUK TEXT NOT NULL DEFAULT '', syllables TEXT NOT NULL DEFAULT '', stressPattern TEXT NOT NULL DEFAULT '', etymology TEXT NOT NULL DEFAULT '', usageNotes TEXT NOT NULL DEFAULT '', wordForms TEXT NOT NULL DEFAULT '[]', senses TEXT NOT NULL DEFAULT '[]', synonyms TEXT NOT NULL DEFAULT '[]', antonyms TEXT NOT NULL DEFAULT '[]', collocations TEXT NOT NULL DEFAULT '[]', grammarPatterns TEXT NOT NULL DEFAULT '[]', learningGoals TEXT NOT NULL DEFAULT '[]', context TEXT NOT NULL DEFAULT '')`);
       const columns = await db.select<{ name: string }[]>(`PRAGMA table_info(words)`);
       const existingColumns = new Set(columns.map((column) => column.name));
@@ -236,6 +238,7 @@ export async function reviewStates(): Promise<ReviewState[]> {
 
 export async function reviewWord(wordId: number, rating: ReviewRating): Promise<{ review: ReviewState }> {
   if (!isDesktop()) { const response = await fetch(`${API}/reviews/${wordId}`, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ rating }) }); if (!response.ok) throw new Error(`Review failed: ${response.status}`); return response.json(); }
+  // Keep this local schedule aligned with backend/src/reviews/review.scheduler.ts until both runtimes share one scheduler.
   const db = await database(); const old = (await db.select<Record<string, unknown>[]>(`SELECT * FROM review_states WHERE wordId = ?`, [wordId]))[0];
   const currentInterval = Number(old?.intervalDays ?? 0);
   const correct = rating !== 'again';

@@ -47,6 +47,7 @@ async function getKey(): Promise<string> {
   return key;
 }
 
+// Treat model output as untrusted external input before exposing it to the editable word form.
 function validateWordSuggestion(value: unknown): WordSuggestion {
   if (!value || typeof value !== 'object' || Array.isArray(value)) throw new Error('Dữ liệu gợi ý từ AI không hợp lệ.');
   const result = value as Record<string, unknown>;

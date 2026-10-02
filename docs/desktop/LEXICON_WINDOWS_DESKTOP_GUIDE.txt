@@ -24,7 +24,7 @@ Trạng thái hiện tại của kho mã nguồn
 - backend/prisma/schema.prisma: schema lưu từ vựng và lịch ôn tập.
 - backend/prisma/dev.db: cơ sở dữ liệu phát triển do Prisma tạo.
 - backend/data/words.json: file seed/đầu vào cũ; không dùng làm nguồn sản phẩm chính.
-- docs/: tài liệu lộ trình sản phẩm và hướng dẫn Windows này.
+- docs/: mục lục và tài liệu được phân nhóm theo chủ đề.
 
 Những phần đã hoạt động
 -----------------------
@@ -41,7 +41,7 @@ Những phần đã hoạt động
 
 Hạn chế quan trọng hiện tại
 ---------------------------
-Phiên bản dễ dùng đầu tiên vẫn là bản web cục bộ. Vỏ Tauri và adapter lưu trữ đã có, đồng thời bộ cài NSIS đã được build trên máy phát triển. Việc cài và chạy lần đầu trên máy sạch vẫn cần kiểm tra.
+Vỏ Tauri, adapter lưu trữ và bộ cài NSIS phiên bản 1.0.0 đã được build trên máy phát triển. Installer hiện chưa được ký số; Windows có thể cảnh báo nhà phát hành chưa xác định. Việc cài, lưu dữ liệu qua nâng cấp và chạy lần đầu trên máy Windows sạch vẫn cần kiểm tra.
 
 Chế độ phát triển web tiếp tục dùng HTTP NestJS. Khi phát triển web, chạy backend riêng:
 
@@ -53,7 +53,7 @@ Sau đó chạy vỏ desktop từ terminal khác:
   cd frontend
   npm run desktop:dev
 
-CRUD và ôn tập desktop đã dùng adapter SQLite cục bộ. Lần chạy đầu tạo các bảng cục bộ nhưng không tạo từ mẫu. Có thể nhập và xuất mục từ dưới dạng JSON Lexicon; lịch sử và lịch ôn chưa nằm trong file chuyển đổi. Sao lưu/khôi phục và kiểm thử trên máy sạch vẫn cần hoàn thiện.
+CRUD và ôn tập desktop đã dùng adapter SQLite cục bộ. Lần chạy đầu tạo các bảng cục bộ nhưng không tạo từ mẫu. Có thể nhập và xuất mục từ dưới dạng JSON Lexicon; lịch sử và lịch ôn chưa nằm trong file chuyển đổi. Sao lưu/khôi phục và kiểm thử trên máy sạch vẫn cần hoàn thiện. Khi mở database, `vocabularyStore.ts` bổ sung cột còn thiếu để tương thích dữ liệu phiên bản trước.
 
 Kiến trúc sản phẩm mục tiêu
 ---------------------------
@@ -67,26 +67,21 @@ Kiến trúc sản phẩm mục tiêu
       |
       +-- Adapter web: API HTTP NestJS (tùy chọn)
 
-Vị trí cơ sở dữ liệu sản phẩm trên Windows:
+Tên database cục bộ được mở qua SQLite plugin:
 
-  %APPDATA%\Lexicon\Lexicon.sqlite
+  sqlite:lexicon.sqlite
 
-Không lưu dữ liệu người dùng trong Program Files hoặc bên cạnh file thực thi. Cơ sở dữ liệu phải tồn tại qua các lần cập nhật và không yêu cầu quyền quản trị.
+Plugin quản lý vị trí database theo thư mục dữ liệu ứng dụng của Tauri. Trước khi hướng dẫn người dùng sao chép hoặc sao lưu thủ công, cần xác minh đường dẫn thực tế trên bản cài. Không lưu dữ liệu trong Program Files hoặc bên cạnh file thực thi. Database phải tồn tại qua các lần cập nhật và không yêu cầu quyền quản trị.
 
-Mô hình cơ sở dữ liệu cục bộ mục tiêu
+Mô hình cơ sở dữ liệu cục bộ hiện tại
 -------------------------------------
-Schema Prisma hiện tại là schema máy chủ/đám mây. Schema SQLite desktop về sau nên có các khái niệm cốt lõi tương tự:
+Desktop tạo các bảng SQLite trực tiếp trong `frontend/src/services/vocabularyStore.ts`:
 
-- vocabulary_entries
-- senses
-- examples
-- tags
-- collections
-- review_states
-- review_history
-- settings
+- `words`: từ vựng; các danh sách lồng nhau được tuần tự hóa dạng JSON.
+- `review_states`: trạng thái hiện tại, lịch đến hạn và bộ đếm ôn.
+- `review_history`: từng lượt ôn, đáp án đúng/sai và thời điểm.
 
-Không nhân đôi một mục từ chỉ vì nó thuộc nhiều collection. Không đặt lịch ôn bên trong component React.
+Backend dùng Prisma với các model tương ứng nhưng là kho riêng. Không đặt lịch ôn bên trong component React. Migration SQLite hiện được áp dụng khi mở database; khi đổi schema, cần giữ tương thích dữ liệu cũ và cập nhật import/export tương ứng.
 
 Thứ tự triển khai
 -----------------
@@ -95,7 +90,7 @@ Thứ tự triển khai
 3. Lưu bản sao lưu rõ ràng trong thư mục dữ liệu người dùng.
 4. Thêm nhập và xuất JSON/CSV.
 5. Kiểm thử file Tauri trên máy Windows sạch.
-6. Giữ NestJS là lớp API/đồng bộ tùy chọn.
+6. Giữ NestJS là lớp API cho web và có thể dùng làm nền cho đồng bộ nhiều thiết bị về sau.
 
 Lệnh phát triển
 ---------------

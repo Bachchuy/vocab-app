@@ -44,6 +44,7 @@ export class ReviewsService {
     const result = this.scheduler.schedule(dto.rating as ReviewRating, existing?.intervalDays ?? 0);
     const reviewCount = (existing?.reviewCount ?? 0) + 1;
 
+    // Persist the current schedule and its audit history atomically so they cannot disagree.
     const state = await this.prisma.$transaction(async (transaction) => {
       const nextState = await transaction.reviewState.upsert({
         where: { wordId },
