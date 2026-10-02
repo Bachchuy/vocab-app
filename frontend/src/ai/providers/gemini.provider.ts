@@ -4,7 +4,7 @@ const MODEL = 'gemini-3.1-flash-lite';
 const ENDPOINT = `https://generativelanguage.googleapis.com/v1beta/models/${MODEL}:generateContent`;
 
 type GeminiResponse = {
-  candidates?: Array<{ content?: { parts?: Array<{ text?: string }> } }>;
+  candidates?: Array<{ content?: { parts?: Array<{ text?: string; thought?: boolean }> } }>;
   error?: { message?: string; status?: string };
 };
 
@@ -13,11 +13,14 @@ export class GeminiProvider implements AiProvider {
   readonly displayName = 'Google Gemini';
 
   async testConnection(apiKey: string): Promise<void> {
-    await this.generateStructured(apiKey, {
+    const result = await this.generateStructured(apiKey, {
       system: 'Reply with the single word OK.',
       input: 'Connection test',
       maxOutputTokens: 8,
     });
+    if (typeof result !== 'string' || !result.trim()) {
+      throw new Error('Gemini đã nhận yêu cầu nhưng không trả nội dung.');
+    }
   }
 
   async generateStructured(apiKey: string, request: AiStructuredRequest): Promise<unknown> {
@@ -31,7 +34,11 @@ export class GeminiProvider implements AiProvider {
           systemInstruction: { parts: [{ text: request.system }] },
           contents: [{ role: 'user', parts: [{ text: JSON.stringify(request.input) }] }],
           generationConfig: request.schema
-            ? { maxOutputTokens: request.maxOutputTokens, responseMimeType: 'application/json', responseSchema: toGeminiSchema(request.schema) }
+            ? {
+                maxOutputTokens: request.maxOutputTokens,
+                // This is a protobuf enum in the current REST responseFormat API.
+                responseFormat: { text: { mimeType: 'APPLICATION_JSON', schema: request.schema } },
+              }
             : { maxOutputTokens: request.maxOutputTokens },
         }),
       });
@@ -47,19 +54,29 @@ export class GeminiProvider implements AiProvider {
     if (response.status === 429) throw new Error('Bạn đã chạm giới hạn miễn phí của Gemini. Hãy thử lại sau.');
     if (!response.ok) throw new Error(payload?.error?.message ?? `Gemini trả về lỗi HTTP ${response.status}.`);
 
-    const text = payload?.candidates?.flatMap((candidate) => candidate.content?.parts ?? []).find((part) => part.text)?.text;
-    if (!text) throw new Error('Gemini không trả về nội dung. Hãy thử lại.');
-    try { return request.schema ? JSON.parse(text) as unknown : text; }
+    // Gemini 3 may include thought summaries as separate text parts before the answer.
+    // Never parse those as the structured result.
+    const text = payload?.candidates
+      ?.flatMap((candidate) => candidate.content?.parts ?? [])
+      .filter((part) => !part.thought && typeof part.text === 'string')
+      .map((part) => part.text)
+      .join('');
+    if (!text) throw new Error('Gemini không trả về nội dung kết quả. Hãy thử lại.');
+    try { return request.schema ? parseJsonOutput(text) : text; }
     catch { throw new Error('Gemini trả dữ liệu không đúng định dạng. Hãy thử lại.'); }
   }
 }
 
-function toGeminiSchema(value: unknown): unknown {
-  if (Array.isArray(value)) return value.map(toGeminiSchema);
-  if (!value || typeof value !== 'object') return value;
-  const schema = value as Record<string, unknown>;
-  return Object.fromEntries(Object.entries(schema).map(([key, child]) => [
-    key,
-    key === 'type' && typeof child === 'string' ? child.toUpperCase() : toGeminiSchema(child),
-  ]));
+function parseJsonOutput(text: string): unknown {
+  const normalized = text.trim().replace(/^```(?:json)?\s*/i, '').replace(/\s*```$/, '').trim();
+  try { return JSON.parse(normalized) as unknown; } catch { /* Try extracting a JSON value from surrounding model text. */ }
+
+  const objectStart = normalized.indexOf('{');
+  const arrayStart = normalized.indexOf('[');
+  const start = objectStart < 0 ? arrayStart : arrayStart < 0 ? objectStart : Math.min(objectStart, arrayStart);
+  const objectEnd = normalized.lastIndexOf('}');
+  const arrayEnd = normalized.lastIndexOf(']');
+  const end = Math.max(objectEnd, arrayEnd);
+  if (start < 0 || end <= start) throw new Error('No JSON value returned');
+  return JSON.parse(normalized.slice(start, end + 1)) as unknown;
 }
