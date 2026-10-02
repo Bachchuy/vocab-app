@@ -1,1 +1,1 @@
-{"root":["./src/app.tsx","./src/main.tsx","./src/vite-env.d.ts","./src/services/vocabularystore.ts"],"version":"5.9.3"}
+{"root":["./src/app.tsx","./src/main.tsx","./src/vite-env.d.ts","./src/ai/aiservice.ts","./src/ai/aisettings.ts","./src/ai/contracts.ts","./src/ai/providerregistry.ts","./src/ai/features/word-suggestions.ts","./src/ai/providers/gemini.provider.ts","./src/services/vocabularystore.ts"],"version":"5.9.3"}
