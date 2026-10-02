@@ -21,6 +21,7 @@ import { AiSettingsPage } from "./app/screens/AiSettingsPage";
 import { blankForm, type FormState, type Rating } from "./app/types";
 
 const blank = blankForm;
+type StudyMode = "due" | "extra" | "weak";
 
 export default function App() {
   const [words, setWords] = useState<Word[]>([]);
@@ -39,6 +40,7 @@ export default function App() {
   const [saving, setSaving] = useState(false);
   const [suggesting, setSuggesting] = useState(false);
   const [studyIndex, setStudyIndex] = useState(0);
+  const [studyMode, setStudyMode] = useState<StudyMode>("due");
   const [flipped, setFlipped] = useState(false);
   const [reviewing, setReviewing] = useState(false);
   const [reviewStates, setReviewStates] = useState<Record<number, ReviewState>>(
@@ -100,7 +102,27 @@ export default function App() {
       (state.status !== "mastered" && new Date(state.dueAt).getTime() <= now)
     );
   });
-  const currentWord = dueWords[studyIndex % Math.max(dueWords.length, 1)];
+  const extraWords = words
+    .filter((word) => reviewStates[word.id]?.status !== "mastered")
+    .sort(
+      (a, b) =>
+        (reviewStates[a.id]?.lastReviewedAt ?? "").localeCompare(
+          reviewStates[b.id]?.lastReviewedAt ?? "",
+        ) || a.id - b.id,
+    );
+  const weakWords = words
+    .filter((word) => reviewStates[word.id]?.status !== "mastered")
+    .sort(
+      (a, b) =>
+        (reviewStates[b.id]?.incorrectCount ?? 0) -
+          (reviewStates[a.id]?.incorrectCount ?? 0) ||
+        (reviewStates[b.id]?.reviewCount ?? 0) -
+          (reviewStates[a.id]?.reviewCount ?? 0) ||
+        a.id - b.id,
+    );
+  const studyWords =
+    studyMode === "extra" ? extraWords : studyMode === "weak" ? weakWords : dueWords;
+  const currentWord = studyWords[studyIndex % Math.max(studyWords.length, 1)];
   const update = (field: keyof FormState, value: string) =>
     setForm((old) => ({ ...old, [field]: value }) as FormState);
   const openAdd = () => {
@@ -188,9 +210,10 @@ export default function App() {
       setNotice(`Không thể xóa mục từ: ${errorText(error)}`);
     }
   };
-  const openStudy = () => {
+  const openStudy = (mode: StudyMode = "due") => {
     setScreen("study");
     setSelected(null);
+    setStudyMode(mode);
     setStudyIndex(0);
     setFlipped(false);
   };
@@ -198,9 +221,11 @@ export default function App() {
     if (!currentWord || reviewing) return;
     setReviewing(true);
     try {
-      const result = await reviewWord(currentWord.id, rating);
-      setReviewStates((old) => ({ ...old, [currentWord.id]: result.review }));
-      setStudyIndex(0);
+      if (studyMode === "due") {
+        const result = await reviewWord(currentWord.id, rating);
+        setReviewStates((old) => ({ ...old, [currentWord.id]: result.review }));
+      }
+      setStudyIndex(studyMode === "due" ? () => 0 : (old) => old + 1);
       setFlipped(false);
     } catch (error) {
       setNotice(`Không thể lưu kết quả ôn tập: ${errorText(error)}`);
@@ -278,7 +303,7 @@ export default function App() {
           setScreen("library");
           setSelected(null);
         }}
-        onStudy={openStudy}
+        onStudy={() => openStudy("due")}
         onDashboard={() => {
           setScreen("dashboard");
           setSelected(null);
@@ -316,11 +341,16 @@ export default function App() {
           <AiSettingsPage />
         ) : screen === "study" ? (
           <Study
+            mode={studyMode}
             word={currentWord}
-            total={dueWords.length}
+            total={studyWords.length}
             index={studyIndex}
             flipped={flipped}
             reviewing={reviewing}
+            extraAvailable={extraWords.length > 0}
+            weakAvailable={weakWords.length > 0}
+            onExtraReview={() => openStudy("extra")}
+            onWeakReview={() => openStudy("weak")}
             onFlip={() => setFlipped(!flipped)}
             onRate={rate}
           />
@@ -329,7 +359,7 @@ export default function App() {
             words={words}
             due={dueWords.length}
             reviewStates={reviewStates}
-            onStudy={openStudy}
+            onStudy={() => openStudy("due")}
             onLibrary={() => setScreen("library")}
           />
         ) : selected ? (
