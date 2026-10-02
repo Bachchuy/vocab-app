@@ -1,93 +1,81 @@
-LEXICON WINDOWS DESKTOP DIRECTION
-=================================
+ĐỊNH HƯỚNG ỨNG DỤNG DESKTOP LEXICON TRÊN WINDOWS
+================================================
 
-Purpose
--------
-Lexicon is a personal vocabulary dictionary. The user discovers words elsewhere,
-saves context and notes here, then reviews those words offline.
+Mục đích
+--------
+Lexicon là từ điển cá nhân. Người học bắt gặp từ ở nơi khác, lưu lại ngữ cảnh và ghi chú, sau đó ôn tập ngoại tuyến.
 
-Chosen architecture
+Kiến trúc được chọn
 -------------------
-Desktop shell: Tauri 2
-UI: React + TypeScript + Vite
-Local database: SQLite through the Tauri SQL plugin
-Cloud/server layer: NestJS + Prisma, optional for sync and future multi-device support
+Vỏ desktop: Tauri 2
+Giao diện: React + TypeScript + Vite
+Cơ sở dữ liệu cục bộ: SQLite thông qua plugin Tauri SQL
+Lớp máy chủ/đám mây: NestJS + Prisma, tùy chọn cho đồng bộ và hỗ trợ nhiều thiết bị về sau
 
-Why Tauri
----------
-Tauri is the preferred Windows shell for this project because it is lighter than
-Electron and does not require shipping a complete Chromium/Node runtime. The
-existing React frontend is reusable. NestJS remains useful as a future cloud API,
-but the desktop application should not require a localhost NestJS process forever.
+Vì sao chọn Tauri
+-----------------
+Tauri phù hợp với ứng dụng Windows vì nhẹ hơn Electron và không cần đóng gói toàn bộ runtime Chromium/Node. Frontend React hiện tại có thể dùng lại. NestJS vẫn hữu ích như API đám mây trong tương lai, nhưng ứng dụng desktop không nên mãi phụ thuộc vào một tiến trình NestJS chạy trên localhost.
 
-Current repository state
-------------------------
-- frontend/: React/Vite application.
-- frontend/src-tauri/: Tauri 2 desktop shell scaffold.
-- backend/: NestJS API with Prisma and SQLite.
-- backend/prisma/schema.prisma: persistent vocabulary and review schema.
-- backend/prisma/dev.db: development database created by Prisma.
-- backend/data/words.json: legacy seed/input file; do not use as the production source.
-- docs/: product roadmap and this Windows direction document.
+Trạng thái hiện tại của kho mã nguồn
+------------------------------------
+- frontend/: ứng dụng React/Vite.
+- frontend/src-tauri/: bộ khung desktop Tauri 2.
+- backend/: API NestJS với Prisma và SQLite.
+- backend/prisma/schema.prisma: schema lưu từ vựng và lịch ôn tập.
+- backend/prisma/dev.db: cơ sở dữ liệu phát triển do Prisma tạo.
+- backend/data/words.json: file seed/đầu vào cũ; không dùng làm nguồn sản phẩm chính.
+- docs/: tài liệu lộ trình sản phẩm và hướng dẫn Windows này.
 
-What is already working
+Những phần đã hoạt động
 -----------------------
-- Vocabulary CRUD through NestJS.
-- Duplicate detection.
-- Vocabulary metadata: lemma, language pair, part of speech and tags.
-- SQLite database and Prisma migrations.
-- ReviewState and ReviewHistory tables.
-- Simple review scheduler.
-- Review API: /reviews/due, /reviews/states, /reviews/:wordId and history.
-- Tauri shell with SQLite plugin and desktop build scripts.
-- Frontend storage adapter: local SQLite in Tauri, NestJS HTTP on the web.
-- Local vocabulary CRUD and review writes are routed through that adapter.
+- CRUD từ vựng qua NestJS.
+- Phát hiện mục từ trùng.
+- Metadata từ vựng: lemma, cặp ngôn ngữ, từ loại, CEFR, sense và mục tiêu học.
+- SQLite và migration Prisma.
+- Bảng ReviewState và ReviewHistory.
+- Bộ lập lịch ôn tập đơn giản.
+- API ôn tập: /reviews/due, /reviews/states, /reviews/:wordId và lịch sử.
+- Vỏ Tauri với plugin SQLite và script build desktop.
+- Adapter lưu trữ frontend: SQLite cục bộ trong Tauri, HTTP NestJS trên web.
+- CRUD từ vựng và thao tác ôn tập cục bộ đi qua adapter này.
 
-Important current limitation
-----------------------------
-The first usable version is the local web version. The Tauri shell and storage
-adapter are in place, and an NSIS installer has been built on the development
-machine. A clean-machine installation and first launch still need verification.
-The web development mode continues to use NestJS HTTP. During web development,
-run the backend separately:
+Hạn chế quan trọng hiện tại
+---------------------------
+Phiên bản dễ dùng đầu tiên vẫn là bản web cục bộ. Vỏ Tauri và adapter lưu trữ đã có, đồng thời bộ cài NSIS đã được build trên máy phát triển. Việc cài và chạy lần đầu trên máy sạch vẫn cần kiểm tra.
+
+Chế độ phát triển web tiếp tục dùng HTTP NestJS. Khi phát triển web, chạy backend riêng:
 
   cd backend
   npm run start:prod
 
-Then run the desktop shell from another terminal:
+Sau đó chạy vỏ desktop từ terminal khác:
 
   cd frontend
   npm run desktop:dev
 
-Desktop CRUD and review operations already use the local SQLite adapter. The
-first launch creates its local tables without sample words. Vocabulary entries
-can be imported and exported as Lexicon JSON; review history and scheduling are
-not included in that transfer file. Backup/restore and clean-machine testing
-remain to be completed.
+CRUD và ôn tập desktop đã dùng adapter SQLite cục bộ. Lần chạy đầu tạo các bảng cục bộ nhưng không tạo từ mẫu. Có thể nhập và xuất mục từ dưới dạng JSON Lexicon; lịch sử và lịch ôn chưa nằm trong file chuyển đổi. Sao lưu/khôi phục và kiểm thử trên máy sạch vẫn cần hoàn thiện.
 
-Target production architecture
-------------------------------
+Kiến trúc sản phẩm mục tiêu
+---------------------------
 
-  React UI
+  Giao diện React
       |
       v
-  TypeScript application services
+  Dịch vụ ứng dụng TypeScript
       |
-      +-- Desktop adapter: Tauri commands / local SQLite
+      +-- Adapter desktop: lệnh Tauri / SQLite cục bộ
       |
-      +-- Web adapter: NestJS HTTP API (optional)
+      +-- Adapter web: API HTTP NestJS (tùy chọn)
 
-Production database location on Windows:
+Vị trí cơ sở dữ liệu sản phẩm trên Windows:
 
   %APPDATA%\Lexicon\Lexicon.sqlite
 
-Never store user data under Program Files or beside the installed executable.
-The database must survive app updates and must not require administrator rights.
+Không lưu dữ liệu người dùng trong Program Files hoặc bên cạnh file thực thi. Cơ sở dữ liệu phải tồn tại qua các lần cập nhật và không yêu cầu quyền quản trị.
 
-Target local database model
----------------------------
-The existing Prisma schema is the server/cloud schema. The desktop SQLite schema
-should eventually contain the same core concepts:
+Mô hình cơ sở dữ liệu cục bộ mục tiêu
+-------------------------------------
+Schema Prisma hiện tại là schema máy chủ/đám mây. Schema SQLite desktop về sau nên có các khái niệm cốt lõi tương tự:
 
 - vocabulary_entries
 - senses
@@ -98,20 +86,19 @@ should eventually contain the same core concepts:
 - review_history
 - settings
 
-Do not duplicate an entry merely because it belongs to multiple collections.
-Do not put review scheduling inside React components.
+Không nhân đôi một mục từ chỉ vì nó thuộc nhiều collection. Không đặt lịch ôn bên trong component React.
 
-Implementation order
---------------------
-1. Use and stabilize V1 web local mode.
-2. Add first-run local schema migration and optional seed/import for Tauri.
-3. Store explicit database backups under the user data directory.
-4. Add JSON/CSV import and export.
-5. Test the Tauri binary on a clean Windows machine.
-6. Keep NestJS as an optional sync/API layer.
+Thứ tự triển khai
+-----------------
+1. Sử dụng và ổn định chế độ web cục bộ V1.
+2. Thêm migration schema lần đầu và seed/nhập tùy chọn cho Tauri.
+3. Lưu bản sao lưu rõ ràng trong thư mục dữ liệu người dùng.
+4. Thêm nhập và xuất JSON/CSV.
+5. Kiểm thử file Tauri trên máy Windows sạch.
+6. Giữ NestJS là lớp API/đồng bộ tùy chọn.
 
-Development commands
---------------------
+Lệnh phát triển
+---------------
 Backend:
   cd backend
   npm run db:status
@@ -124,63 +111,57 @@ Frontend web:
   npm run dev
   npm run build
 
-Tauri desktop development:
+Phát triển desktop Tauri:
   cd frontend
   npm run desktop:dev
 
-Tauri production compilation without installer:
+Biên dịch Tauri không tạo bộ cài:
   cd frontend
   npm run desktop:build
 
-Build the NSIS Windows installer:
+Tạo bộ cài NSIS Windows:
   cd frontend
   npm run desktop:installer
 
-Windows prerequisites
----------------------
+Điều kiện cần trên Windows
+--------------------------
 - Node.js LTS
-- Rust stable with the MSVC toolchain
+- Rust stable với bộ công cụ MSVC
 - Microsoft C++ Build Tools
 - WebView2 Runtime
 - Windows SDK
 
-If Rust cannot find `link.exe`, install Visual Studio Build Tools 2022 with:
+Nếu Rust không tìm thấy `link.exe`, cài Visual Studio Build Tools 2022 với:
 
   Desktop development with C++
   MSVC v143 build tools
   Windows 10/11 SDK
 
-Then open a new PowerShell and run:
+Sau đó mở PowerShell mới và chạy:
 
   cd frontend
   npm run desktop:build
 
-If Cargo still cannot find `link.exe`, run the build from "x64 Native Tools
-Command Prompt for VS 2022" or start a PowerShell from that developer prompt.
+Nếu Cargo vẫn không tìm thấy `link.exe`, chạy build từ "x64 Native Tools Command Prompt for VS 2022" hoặc mở PowerShell từ cửa sổ dành cho nhà phát triển đó.
 
-Data safety rules
------------------
-- Do not commit .env files or SQLite database files.
-- Run database migrations before opening the app.
-- Back up the local database before destructive migrations.
-- Export JSON/CSV must remain available even if cloud sync is added.
-- AI and dictionary APIs are optional and must never block local vocabulary use.
+Quy tắc an toàn dữ liệu
+-----------------------
+- Không commit file .env hoặc file cơ sở dữ liệu SQLite.
+- Chạy migration trước khi mở ứng dụng.
+- Sao lưu cơ sở dữ liệu trước migration có khả năng phá hủy dữ liệu.
+- Phải giữ khả năng xuất JSON/CSV kể cả khi thêm đồng bộ đám mây.
+- AI và API từ điển là tùy chọn, không được chặn việc học từ cục bộ.
 
-Definition of done for standalone Windows app
----------------------------------------------
-- Lexicon opens from one installer shortcut.
-- No terminal is required.
-- No NestJS process is required for core vocabulary/review functions.
-- Data persists after restart and app update.
-- Search, detail, add, edit, delete and review work offline.
-- Import/export and backup/restore are tested.
-- A clean Windows machine can install and run the app.
+Tiêu chí hoàn thành ứng dụng Windows độc lập
+--------------------------------------------
+- Mở Lexicon từ một shortcut của bộ cài.
+- Không cần terminal.
+- Các chức năng từ vựng và ôn tập cốt lõi không cần tiến trình NestJS.
+- Dữ liệu tồn tại sau khi khởi động lại và cập nhật ứng dụng.
+- Tìm kiếm, xem chi tiết, thêm, sửa, xóa và ôn tập hoạt động ngoại tuyến.
+- Nhập/xuất và sao lưu/khôi phục đã được kiểm thử.
+- Có thể cài và chạy trên một máy Windows sạch.
 
-Guidance for future AI assistants
----------------------------------
-Do not rewrite the project or replace the stack casually. First inspect this file,
-the product roadmap and current package files. Keep React/Vite for the UI and use
-Tauri for the Windows shell. Keep NestJS/Prisma as the server/sync layer unless a
-specific task is moving a function to the local Tauri database. Prefer small
-migrations, build after each milestone, and report any remaining limitation
-instead of pretending the desktop app is already fully offline.
+Hướng dẫn cho trợ lý AI về sau
+------------------------------
+Không tùy tiện viết lại dự án hoặc thay stack. Trước tiên đọc file này, lộ trình sản phẩm và các file package hiện tại. Giữ React/Vite cho giao diện và dùng Tauri cho vỏ Windows. Giữ NestJS/Prisma làm lớp máy chủ/đồng bộ trừ khi task yêu cầu chuyển chức năng sang cơ sở dữ liệu Tauri cục bộ. Ưu tiên migration nhỏ, build sau mỗi mốc và báo rõ hạn chế còn lại thay vì coi ứng dụng desktop đã hoàn toàn ngoại tuyến.

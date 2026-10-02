@@ -1,38 +1,36 @@
-LEXICON V1 - QUICK START FOR WINDOWS
-====================================
+LEXICON V1 - KHỞI ĐỘNG NHANH TRÊN WINDOWS
+==========================================
 
-What V1 is
-----------
-V1 is a usable local personal vocabulary dictionary running in a browser.
-It uses a real SQLite database through the NestJS backend. Data remains after
-restarting the backend because it is stored in the local Prisma SQLite database.
-The Tauri desktop shell is a separate prototype with its own local database;
-it does not yet import or sync the browser/backend database.
+V1 là gì
+--------
+V1 là từ điển cá nhân chạy cục bộ trên trình duyệt. Ứng dụng dùng cơ sở dữ liệu SQLite thật thông qua backend NestJS. Dữ liệu vẫn còn sau khi khởi động lại backend vì được lưu trong SQLite của Prisma.
 
-V1 includes
------------
-- Add vocabulary entries.
-- Edit vocabulary entries.
-- Delete vocabulary entries.
-- Prevent duplicate spelling.
-- Save meaning, example, source, notes and category.
-- Search across word, meaning, example, source and notes.
-- Filter and sort the personal dictionary.
-- Open a vocabulary detail page.
-- Review saved words with a simple spaced-repetition scheduler.
-- Persist review state and review history in SQLite.
-- Import and export vocabulary entries as Lexicon JSON files.
-- Use the same REST API from the React frontend.
+Vỏ desktop Tauri là một bản thử nghiệm riêng với cơ sở dữ liệu riêng; hiện chưa nhập hoặc đồng bộ cơ sở dữ liệu browser/backend.
 
-Requirements
-------------
-- Windows 10 or Windows 11.
+V1 có
+-----
+- Thêm mục từ.
+- Sửa mục từ.
+- Xóa mục từ.
+- Ngăn trùng cách viết.
+- Lưu nghĩa, câu ví dụ, nguồn, ghi chú, chủ đề và metadata từ vựng.
+- Tìm kiếm theo từ, nghĩa, ví dụ, nguồn và ghi chú.
+- Lọc và sắp xếp từ điển cá nhân.
+- Mở trang chi tiết của một mục từ.
+- Ôn từ đã lưu với bộ lập lịch lặp lại ngắt quãng đơn giản.
+- Lưu trạng thái và lịch sử ôn trong SQLite.
+- Nhập và xuất mục từ dưới dạng file JSON Lexicon.
+- Dùng cùng REST API từ frontend React.
+
+Yêu cầu
+-------
+- Windows 10 hoặc Windows 11.
 - Node.js LTS.
 - npm.
 
-Start V1 manually
------------------
-Open PowerShell window 1:
+Khởi động V1 thủ công
+---------------------
+Mở cửa sổ PowerShell thứ nhất:
 
   cd D:\code\vocab-app\backend
   npm install
@@ -41,56 +39,50 @@ Open PowerShell window 1:
   npm run db:seed
   npm run start:dev
 
-Open PowerShell window 2:
+Mở cửa sổ PowerShell thứ hai:
 
   cd D:\code\vocab-app\frontend
   npm install
   npm run dev
 
-Open this address in the browser:
+Mở địa chỉ sau trên trình duyệt:
 
   http://localhost:5173
 
-The backend API is:
+API backend:
 
   http://localhost:3000
 
-Build a Windows installer
--------------------------
-From the frontend directory, run:
+Tạo bộ cài Windows
+------------------
+Trong thư mục frontend, chạy:
 
   npm run desktop:installer
 
-The NSIS installer is written to:
+Bộ cài NSIS được tạo tại:
 
   frontend\src-tauri\target\release\bundle\nsis\Lexicon_0.1.0_x64-setup.exe
 
-The desktop app stores vocabulary in its own local SQLite database. It does
-not currently sync with the browser/backend database. JSON transfer currently
-exports and imports vocabulary entries; review scheduling stays in each app's
-database.
+Ứng dụng desktop lưu từ vựng trong SQLite cục bộ riêng. Hiện chưa đồng bộ với cơ sở dữ liệu browser/backend. Chuyển đổi JSON mới chỉ nhập/xuất mục từ; lịch ôn vẫn nằm riêng trong cơ sở dữ liệu của từng ứng dụng.
 
-Start V1 with one script
-------------------------
-From the repository root:
+Khởi động V1 bằng một script
+----------------------------
+Từ thư mục gốc của kho mã nguồn:
 
   powershell -ExecutionPolicy Bypass -File .\start-v1.ps1
 
-The script installs missing dependencies, prepares the Prisma database, loads
-the existing starter vocabulary idempotently, and opens two PowerShell windows.
-Keep both windows open while using V1. To stop V1, close those two windows.
+Script sẽ cài dependency còn thiếu, chuẩn bị cơ sở dữ liệu Prisma, nạp dữ liệu mẫu cũ theo cách an toàn khi chạy lại và mở hai cửa sổ PowerShell. Giữ cả hai cửa sổ khi dùng V1. Muốn dừng V1, đóng hai cửa sổ đó.
 
-Database
---------
-Development database:
+Cơ sở dữ liệu
+-------------
+Cơ sở dữ liệu phát triển:
 
   backend\prisma\dev.db
 
-Do not delete this file if you want to keep local vocabulary data.
-Do not commit it to Git.
+Không xóa file này nếu muốn giữ dữ liệu từ vựng cục bộ. Không commit file này lên Git.
 
-Useful checks
--------------
+Kiểm tra nhanh
+--------------
 
   cd backend
   npm run db:status
@@ -99,7 +91,7 @@ Useful checks
   cd ..\frontend
   npm run build
 
-Review API
+API ôn tập
 ----------
 
   GET  http://localhost:3000/reviews/due
@@ -107,40 +99,34 @@ Review API
   GET  http://localhost:3000/reviews/:wordId/history
   POST http://localhost:3000/reviews/:wordId
 
-Example review body:
+Ví dụ nội dung review:
 
   {"rating":"easy"}
 
-What V1 does not include yet
-----------------------------
-- Import/export of review history (JSON transfer currently contains vocabulary entries).
-- Authentication and multiple users.
-- Collections.
-- Multiple senses per word.
-- Dictionary lookup and pronunciation.
-- CSV/JSON import and export.
-- Cloud sync.
-- AI features.
-- Automated tests.
+V1 chưa có
+----------
+- Nhập/xuất lịch sử ôn (file JSON hiện chỉ chứa mục từ).
+- Xác thực và nhiều người dùng.
+- Collection.
+- Tra từ điển tự động và phát âm tự động.
+- Đồng bộ đám mây.
+- Một số tính năng AI nâng cao.
+- Bộ kiểm thử tự động đầy đủ.
 
-Recommended next milestones
-----------------------------
-1. Add automated backend and scheduler tests.
-2. Add collections and tags management.
-3. Add multiple senses and richer vocabulary details.
-4. Add JSON/CSV export and import.
-5. Add review-history backup/restore and verify the installer on a clean Windows machine.
-6. Add optional cloud sync only after local data ownership is stable.
+Các mốc tiếp theo đề xuất
+-------------------------
+1. Thêm test backend và test bộ lập lịch ôn.
+2. Thêm quản lý collection và tag.
+3. Hoàn thiện giao diện nhập nhiều sense và thông tin từ vựng mở rộng.
+4. Thêm nhập/xuất JSON và CSV.
+5. Thêm sao lưu/khôi phục lịch sử ôn và kiểm tra bộ cài trên máy Windows sạch.
+6. Chỉ thêm đồng bộ đám mây sau khi quyền sở hữu dữ liệu cục bộ ổn định.
 
-For future AI assistants
-------------------------
-Read this file first, then read:
+Dành cho trợ lý AI về sau
+-------------------------
+Đọc file này trước, sau đó đọc:
 
   docs\LEXICON_WINDOWS_DESKTOP_GUIDE.txt
   docs\ROADMAP_VOCAB_APP.md
 
-Do not rewrite the project. Keep V1 working while adding one milestone at a
-time. Run both frontend and backend builds after changes. Treat SQLite as the
-source of truth for V1. The NSIS installer can be rebuilt with
-`npm run desktop:installer` from the frontend directory. Verify installation
-and data persistence on a clean Windows machine before distribution.
+Không viết lại dự án. Giữ V1 hoạt động trong khi thêm từng mốc một. Sau thay đổi, chạy build frontend và backend. Coi SQLite là nguồn dữ liệu chính của V1. Có thể tạo lại bộ cài NSIS bằng `npm run desktop:installer` trong thư mục frontend. Cần kiểm tra việc cài đặt và dữ liệu tồn tại trên máy Windows sạch trước khi phát hành.

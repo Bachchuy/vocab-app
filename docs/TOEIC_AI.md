@@ -1,25 +1,34 @@
-# TOEIC vocabulary fields and AI suggestions
+# Trường từ vựng và gợi ý AI
 
-Each saved word can include its Vietnamese meaning, part of speech, IPA, workplace example, TOEIC context, related word forms, synonyms, antonyms, collocations, source, and personal notes. Open a word and choose **Sửa** to change any field. The related forms field uses one form per line:
+Mỗi mục từ có thể lưu nghĩa theo ngôn ngữ giải thích của người học, từ loại, phiên âm, câu ví dụ theo ngữ cảnh, ngữ cảnh học, họ từ, từ đồng nghĩa, từ trái nghĩa, collocation, nguồn gặp từ và ghi chú cá nhân. Ngôn ngữ nguồn, ngôn ngữ giải thích và mục tiêu học được chọn riêng; TOEIC chỉ là một hướng sử dụng, không phải mặc định của mô hình.
+
+Chọn **Sửa** trên một mục từ để thay đổi trường dữ liệu. Phần họ từ dùng một dòng cho mỗi dạng:
 
 ```text
 noun | acquisition | sự mua lại
 adjective | acquisitive | có tính thu nhận
 ```
 
-The **Gợi ý bằng AI** button fills the editable form; it never saves automatically. Review the generated information before saving. Some words do not have a useful antonym, so that list can be empty.
+Nút **Gợi ý bằng AI** chỉ điền dữ liệu vào biểu mẫu, không tự động lưu. Hãy kiểm tra nội dung AI trước khi lưu. Một số từ không có từ trái nghĩa phù hợp nên danh sách đó có thể để trống.
 
-## Enable AI suggestions
+## Bật tính năng gợi ý AI
 
-AI suggestions call the local NestJS backend, which then calls the OpenAI Responses API. The API key stays in the backend and is not included in the frontend or the desktop app.
+Tính năng gợi ý gọi backend NestJS cục bộ, sau đó backend gọi OpenAI Responses API. Khóa API chỉ nằm ở backend, không đưa vào frontend hoặc ứng dụng desktop.
 
-1. Open `backend/.env` (create it by copying `backend/.env.example` if needed).
-2. Set `OPENAI_API_KEY` to your API key. Optionally set `OPENAI_MODEL` to a model available to your account.
-3. Start the backend with `npm run start:dev` from the `backend` directory.
-4. Keep the backend running while requesting suggestions. The desktop app makes requests to `http://localhost:3000`.
+1. Mở `backend/.env`. Nếu chưa có, tạo bằng cách sao chép `backend/.env.example`.
+2. Đặt `OPENAI_API_KEY` bằng khóa API của bạn. Có thể đặt thêm `OPENAI_MODEL` nếu tài khoản dùng model khác.
+3. Chạy `npm run start:dev` trong thư mục `backend`.
+4. Giữ backend đang chạy khi yêu cầu gợi ý. Ứng dụng desktop gọi backend tại `http://localhost:3000`.
 
-AI suggestions need internet access and API usage enabled for the key. The dictionary itself continues to work without AI. Never commit `.env` or share its key.
+Tính năng AI cần Internet và tài khoản API còn hạn mức. Từ điển vẫn hoạt động khi không bật AI. Không commit file `.env` và không chia sẻ khóa API.
 
-## Update the database and desktop app
+## Cập nhật cơ sở dữ liệu và ứng dụng desktop
 
-From `backend`, run `npm run db:generate` and `npx prisma migrate deploy`. Then from `frontend`, run `npm run tauri build` to create an updated Windows installer. The desktop database also adds any missing vocabulary fields when the app starts.
+Trong thư mục `backend`, chạy:
+
+```powershell
+npm run db:generate
+npx prisma migrate deploy
+```
+
+Sau đó trong thư mục `frontend`, chạy `npm run tauri build` để tạo bộ cài Windows mới. Cơ sở dữ liệu desktop cũng tự bổ sung các trường từ vựng còn thiếu khi ứng dụng khởi động.
