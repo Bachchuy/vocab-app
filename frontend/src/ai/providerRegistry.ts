@@ -1,6 +1,7 @@
 import type { AiProvider, AiProviderId } from './contracts';
 import { GeminiProvider } from './providers/gemini.provider';
 
+// Feature use cases depend on AiProvider, so swapping an API vendor stays at this boundary.
 const providers: Record<AiProviderId, AiProvider> = {
   gemini: new GeminiProvider(),
 };

@@ -74,11 +74,13 @@ mod windows_credentials {
   pub fn read(target: &str) -> Result<Option<String>, String> {
     let target = wide(target);
     let mut credential = null_mut();
+    // CredReadW allocates the returned credential; copy its secret before freeing that allocation.
     let ok = unsafe { CredReadW(target.as_ptr(), CRED_TYPE_GENERIC, 0, &mut credential) };
     if ok == 0 {
       let error = unsafe { windows_sys::Win32::Foundation::GetLastError() };
       return if error == 1168 { Ok(None) } else { Err(format!("Không đọc được API key từ Windows Credential Manager (mã {error}).")) };
     }
+    // The pointer is valid until CredFree; convert the borrowed bytes into an owned String first.
     let result = unsafe {
       let entry = &*credential;
       if entry.CredentialBlobSize == 0 {
@@ -101,6 +103,7 @@ mod windows_credentials {
     credential.CredentialBlobSize = secret.len() as u32;
     credential.CredentialBlob = secret.as_mut_ptr();
     credential.Persist = CRED_PERSIST_LOCAL_MACHINE;
+    // CredWriteW borrows these buffers only for the duration of the call; keep both alive until it returns.
     let ok = unsafe { CredWriteW(&credential, 0) };
     secret.fill(0);
     if ok == 0 { return Err("Không lưu được API key vào Windows Credential Manager.".into()); }

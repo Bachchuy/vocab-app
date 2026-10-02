@@ -2,6 +2,8 @@
 
 Lexicon hiện bắt đầu với tiếng Anh, nhưng mô hình dữ liệu tách riêng thông tin ngôn ngữ khỏi mục tiêu học. Vì vậy sau này có thể thêm ngôn ngữ khác mà không phải thay đổi ý nghĩa của một mục từ.
 
+Tầm nhìn và các tính năng dự kiến được mô tả trong [định hướng sản phẩm](PRODUCT_STRATEGY_VISION.md); tài liệu này tập trung vào ý nghĩa dữ liệu và quy tắc mô hình hóa.
+
 ## Các nhóm trường chính
 
 | Nhóm                       | Trường                                                                              | Mục đích                                                                                                                                    |
@@ -22,5 +24,6 @@ Lexicon hiện bắt đầu với tiếng Anh, nhưng mô hình dữ liệu tác
 - Một từ có thể có nhiều `senses` và nhiều `learningGoals`.
 - AI được phép đề xuất các thông tin ngôn ngữ như CEFR, nghĩa, phát âm và mẫu ngữ pháp. Người học vẫn phải xem lại trước khi lưu.
 - Mục tiêu học không được ghi đè lên định nghĩa, trình độ hoặc ngữ cảnh sử dụng. Nó chỉ là bộ lọc và góc nhìn ôn tập.
+- Lịch sử ôn là sự kiện có thời điểm; thống kê và streak nên được tính từ các sự kiện này theo timezone/ngày đã định nghĩa, thay vì lưu bộ đếm độc lập dễ lệch.
 
 Entity backend là một aggregate theo hướng OOP. Constructor nhận một object `WordProps`, bảo vệ các collection, cung cấp hành vi nghiệp vụ như `hasLearningGoal` và dùng `toJSON()` tại ranh giới API. Hiện tại Prisma lưu các collection lồng nhau dưới dạng JSON; sau này có thể tách thành bảng liên quan nếu cần truy vấn riêng từng nghĩa hoặc từng mục tiêu học.

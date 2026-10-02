@@ -1,69 +1,52 @@
-LEXICON V1 - HƯỚNG DẪN CHUNG
+LEXICON - HƯỚNG DẪN ĐỌC KHO MÃ NGUỒN
+====================================
 
-1. Mục tiêu
-Xây một từ điển cá nhân có review. V1 là local web app chạy trên Windows, dùng React, NestJS, Prisma và SQLite. Tauri desktop đang được chuẩn bị cho giai đoạn sau.
+BẮT ĐẦU TỪ ĐÂU
+---------------
+1. README.md: giới thiệu project và lệnh build cơ bản.
+2. docs/README.md (hoặc docs/README.txt): mục lục tài liệu theo chủ đề.
+3. docs/desktop/V1_QUICKSTART.txt: chạy web/desktop và tạo bộ cài Windows.
+4. docs/desktop/LEXICON_WINDOWS_DESKTOP_GUIDE.txt: kiến trúc và giới hạn desktop.
 
-2. Công nghệ hiện tại
+CÁC NHÓM TÀI LIỆU
+-----------------
+- docs/product/: tầm nhìn, thống kê/thành tích/chuỗi học và mô hình từ vựng.
+- docs/ai/: cách dùng AI, provider và feature gợi ý từ.
+- docs/desktop/: hướng dẫn chạy, dữ liệu và đóng gói Windows.
+- docs/development/: curriculum dài hạn và Git Flow.
+- txt/01-04_*.txt: tài liệu học Node, OOP, frontend và backend.
+- txt/frontend/ và txt/backend/: ghi chú giải thích một số file source theo đường dẫn tương ứng.
+- txt/docs/product/PRODUCT_STRATEGY_VISION.md.txt: bản text dễ đọc của tầm nhìn sản phẩm.
+- txt/docs/development/ROADMAP_VOCAB_APP.md.txt: bản text dễ đọc của roadmap học tập.
+
+TRẠNG THÁI KIẾN TRÚC
+--------------------
 - Frontend: React + TypeScript + Vite.
-- Backend: NestJS + TypeScript.
-- Giao tiếp: HTTP/JSON.
-- Lưu trữ V1: SQLite qua Prisma tại backend/prisma/dev.db.
-- Review: ReviewState, ReviewHistory và SimpleReviewScheduler.
+- Desktop: Tauri 2 + SQLite cục bộ.
+- Browser: NestJS + Prisma + SQLite qua HTTP.
+- Dữ liệu desktop và browser hiện chưa tự động đồng bộ.
+- AI tùy chọn, dùng API key Gemini do người dùng tự cấu hình.
+- Installer NSIS 1.0.0 đã build trên máy phát triển; chưa ký số và chưa được kiểm tra trên máy Windows sạch.
 
-3. Cách chạy project
+LỆNH CHẠY NHANH
+---------------
 Mở terminal 1:
-cd D:\code\vocab-app\backend
-$env:Path += ";C:\Program Files\nodejs"
-npm install
-npm run start:dev
+  cd D:\code\vocab-app\backend
+  npm install
+  npm run start:dev
 
 Mở terminal 2:
-cd D:\code\vocab-app\frontend
-$env:Path += ";C:\Program Files\nodejs"
-npm install
-npm run dev
+  cd D:\code\vocab-app\frontend
+  npm install
+  npm run dev
 
-Mở trình duyệt tại:
-http://localhost:5173
+Mở http://localhost:5173
 
-API kiểm tra tại:
-http://localhost:3000/words
+Tạo installer Windows từ thư mục frontend:
+  npm run desktop:installer
 
-4. Cách chạy nhanh
-Từ thư mục gốc chạy:
+CHÚ THÍCH VÀ GHI CHÚ TXT
+------------------------
+Thư mục txt/ có ghi chú học tập, không phải bản sao tự động của code. Nếu code đổi làm thay đổi luồng hoạt động hoặc trách nhiệm file, cập nhật README.txt liên quan trong cùng thay đổi.
 
-powershell -ExecutionPolicy Bypass -File .\start-v1.ps1
-
-Script mở hai PowerShell: backend và frontend. Sau đó mở http://localhost:5173.
-Xem hướng dẫn đầy đủ tại docs/V1_QUICKSTART.txt.
-
-5. Cấu trúc hướng dẫn
-Các file 01-04 là hướng dẫn theo giai đoạn.
-Thư mục txt/frontend và txt/backend mirror cấu trúc source. Ví dụ:
-frontend/src/App.tsx
--> txt/frontend/src/App.tsx.txt
-
-Mỗi file mirror giải thích đúng file tương ứng: mục đích, từng phần, luồng dữ liệu và cách mở rộng.
-
-6. Kiến trúc hiện tại
-Frontend: React -> vocabularyStore adapter -> Tauri SQLite hoặc NestJS HTTP.
-Backend: main.ts -> AppModule -> WordsModule/ReviewsModule -> Controller -> Service -> PrismaRepository.
-
-7. Quy tắc học và phát triển
-- Mỗi class/module có một trách nhiệm chính.
-- Controller chỉ nhận request và trả response.
-- Service chứa business logic.
-- Repository quản lý dữ liệu.
-- DTO mô tả input từ client.
-- Chạy build sau mỗi thay đổi quan trọng.
-
-8. Lưu ý dữ liệu
-Dữ liệu V1 không mất khi backend restart vì được lưu trong SQLite. Không xóa backend/prisma/dev.db nếu muốn giữ dữ liệu local. Không commit file database hoặc .env.
-
-Tauri shell nằm tại frontend/src-tauri. Chưa có installer Windows vì máy build còn thiếu Visual C++ Build Tools/link.exe.
-
-9. Nếu VS Code hiện file đỏ
-- Chạy npm run build trong đúng thư mục frontend hoặc backend.
-- Đọc lỗi trong terminal thay vì chỉ dựa vào màu Explorer.
-- Chọn TypeScript: Restart TS Server.
-- Chọn Developer: Reload Window nếu Explorer chưa cập nhật.
+huong_dan.md và docs/development/ROADMAP_VOCAB_APP.md là tài liệu curriculum/lộ trình, có thể chứa ý tưởng chưa làm. Dùng docs/README.md và code hiện tại để xác nhận trạng thái thật.

@@ -3,6 +3,7 @@ import { invoke } from '@tauri-apps/api/core';
 const browserSessionKey = 'lexicon.ai.gemini.api-key';
 const isDesktop = () => '__TAURI_INTERNALS__' in window;
 
+// Desktop secrets use the OS credential store; browser development uses tab-scoped storage only.
 export async function hasAiApiKey(): Promise<boolean> {
   return isDesktop() ? invoke<boolean>('has_ai_api_key') : Boolean(sessionStorage.getItem(browserSessionKey));
 }

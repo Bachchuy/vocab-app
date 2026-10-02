@@ -61,7 +61,7 @@ Trong thư mục frontend, chạy:
 
 Bộ cài NSIS được tạo tại:
 
-  frontend\src-tauri\target\release\bundle\nsis\Lexicon_0.1.0_x64-setup.exe
+  frontend\src-tauri\target\release\bundle\nsis\Lexicon_1.0.0_x64-setup.exe
 
 Ứng dụng desktop lưu từ vựng trong SQLite cục bộ riêng. Hiện chưa đồng bộ với cơ sở dữ liệu browser/backend. Chuyển đổi JSON mới chỉ nhập/xuất mục từ; lịch ôn vẫn nằm riêng trong cơ sở dữ liệu của từng ứng dụng.
 
@@ -126,7 +126,7 @@ Dành cho trợ lý AI về sau
 -------------------------
 Đọc file này trước, sau đó đọc:
 
-  docs\LEXICON_WINDOWS_DESKTOP_GUIDE.txt
-  docs\ROADMAP_VOCAB_APP.md
+  docs\desktop\LEXICON_WINDOWS_DESKTOP_GUIDE.txt
+  docs\development\ROADMAP_VOCAB_APP.md
 
-Không viết lại dự án. Giữ V1 hoạt động trong khi thêm từng mốc một. Sau thay đổi, chạy build frontend và backend. Coi SQLite là nguồn dữ liệu chính của V1. Có thể tạo lại bộ cài NSIS bằng `npm run desktop:installer` trong thư mục frontend. Cần kiểm tra việc cài đặt và dữ liệu tồn tại trên máy Windows sạch trước khi phát hành.
+Không viết lại dự án. Giữ V1 hoạt động trong khi thêm từng mốc một. Sau thay đổi, chạy build frontend và backend. Desktop dùng SQLite cục bộ; browser dùng backend NestJS/Prisma và hiện chưa đồng bộ với desktop. Có thể tạo lại bộ cài NSIS bằng `npm run desktop:installer` trong thư mục frontend. Bộ cài 1.0.0 đã được tạo trên máy phát triển, nhưng cài đặt, lưu dữ liệu sau cập nhật và khởi chạy trên máy Windows sạch vẫn cần kiểm tra trước khi phát hành.

@@ -1,23 +1,10 @@
-HƯỚNG DẪN: huong_dan.md
+HƯỚNG DẪN ĐỌC: huong_dan.md
 
-Đây là tài liệu định hướng tổng thể của Vocab App.
+Đây là curriculum kỹ thuật đời đầu của project, gồm nhiều mục tiêu và stack tương lai. Một số nội dung không phản ánh kiến trúc đang chạy hiện nay.
 
-Mục tiêu:
-Xây nền tảng học từ vựng có flashcard, quiz, review, thống kê, authentication và AI trong các giai đoạn sau.
+Để hiểu đúng repo hiện tại:
+1. Mở README.md ở thư mục gốc.
+2. Mở docs/README.md để chọn tài liệu theo chủ đề.
+3. Xem docs/desktop/ để biết cách chạy và giới hạn hiện tại.
 
-Cách học:
-HỌC -> CODE -> GẶP VẤN ĐỀ -> NGHIÊN CỨU -> SỬA -> TEST -> GHI LẠI
-
-Kiến trúc:
-Frontend React + TypeScript giao tiếp HTTP/JSON với backend NestJS. Backend được chia module và service/repository theo hướng OOP.
-
-Lộ trình nên theo:
-1. CRUD words với in-memory repository.
-2. Validation DTO.
-3. Tách component và API service frontend.
-4. PostgreSQL + Prisma.
-5. Authentication.
-6. Flashcard, quiz và spaced repetition.
-7. AI generation và recommendation.
-
-Đọc tài liệu mirror trong txt theo đường dẫn tương ứng với file thật.
+Không dùng file này làm nguồn quyết định stack hoặc tính năng đã hoàn thành. Hãy đối chiếu với source code và tài liệu hiện trạng trong docs/.

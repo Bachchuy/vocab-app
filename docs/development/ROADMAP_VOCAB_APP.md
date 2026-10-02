@@ -619,11 +619,11 @@ Tự xây:
 
 ---
 
-# 10. MILESTONE 5 — Statistics v0
+# 10. MILESTONE 5 — Thống kê học tập v0
 
 ## Mục tiêu
 
-Biến dữ liệu quiz thành thông tin hữu ích.
+Biến dữ liệu từ vựng và ôn tập thành thông tin giúp người học quyết định việc cần làm tiếp theo. Chỉ tính chỉ số có dữ liệu nguồn rõ ràng; không trình bày số từ đã lưu như thước đo năng lực ngôn ngữ.
 
 ## Học
 
@@ -635,10 +635,10 @@ Biến dữ liệu quiz thành thông tin hữu ích.
 ## Dashboard
 
 ```text
-Words studied: 50
-Correct: 42
-Wrong: 8
-Accuracy: 84%
+Words in dictionary: 50
+Due today: 12
+Reviews this week: 42
+Words mastered: 8
 ```
 
 ## Công thức
@@ -646,6 +646,8 @@ Accuracy: 84%
 ```text
 accuracy = correct / total * 100
 ```
+
+Chỉ hiển thị accuracy khi có lượt trả lời tương ứng. Trước khi tạo biểu đồ, định nghĩa rõ khoảng thời gian, timezone và cách xử lý lượt ôn bị lặp.
 
 ## Mở rộng
 
@@ -1060,7 +1062,16 @@ streak
 response time
 weak topics
 strong topics
+achievements
 ```
+
+## Quy tắc streak và thành tích
+
+- Streak dựa trên ngày có phiên học/ôn đạt mục tiêu tối thiểu; mở ứng dụng không được tính là học.
+- Chọn rõ calendar day và timezone dùng để gom lượt ôn. Nếu người dùng đổi timezone, không âm thầm sửa lịch sử cũ.
+- Thành tích nên ghi nhận việc ôn đều và ghi nhớ bền, không chỉ số từ mới được thêm.
+- Có thể cho người học đặt mục tiêu tuần/ngày nghỉ. Khi streak bị ngắt, giữ lại thành tích đã đạt và giúp người dùng bắt đầu lại mà không bị phạt.
+- Tính thống kê từ ReviewHistory khi có thể; nếu dùng dữ liệu tổng hợp/cache, phải có thể tái dựng từ dữ liệu gốc.
 
 ## Học
 

@@ -1,18 +1,13 @@
 HƯỚNG DẪN THƯ MỤC: frontend/src
 
-Đây là nơi chứa source code React.
+Đây là source React/TypeScript của frontend và desktop.
 
-Các file hiện tại:
-- App.tsx: component gốc, form và danh sách từ.
-- main.tsx: entry point khởi động React.
+Các điểm vào và nhóm file hiện tại:
+- main.tsx: khởi động React.
+- App.tsx: state và điều phối màn hình chính.
+- app/: component, screen, kiểu form và xử lý lỗi giao diện.
+- services/vocabularyStore.ts: giao tiếp dữ liệu; chọn SQLite Tauri trên desktop hoặc HTTP khi chạy browser.
+- ai/: hợp đồng provider, cài đặt key, Gemini adapter và use case gợi ý từ.
 - index.css: style toàn cục.
 
-Khi project lớn hơn, có thể thêm:
-- components/: component tái sử dụng.
-- pages/: màn hình theo route.
-- services/: class gọi API.
-- types/: interface/type dùng chung.
-- hooks/: custom hooks.
-
-Quy tắc:
-UI component tập trung hiển thị và interaction. API/data logic nên tách ra service để dễ test và bảo trì.
+Khi sửa UI, giữ business/data logic trong service hoặc feature phù hợp thay vì gọi provider trực tiếp từ component. Xem docs/ai/AI_SUPPORT.md và docs/product/VOCABULARY_MODEL.md để hiểu các ranh giới này.

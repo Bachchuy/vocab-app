@@ -68,6 +68,12 @@ export default function App() {
     void loadWords();
   }, []);
   useEffect(() => {
+    if (!notice) return;
+
+    const timeout = window.setTimeout(() => setNotice(""), 3000);
+    return () => window.clearTimeout(timeout);
+  }, [notice]);
+  useEffect(() => {
     if (selected)
       setSelected(words.find((word) => word.id === selected.id) ?? null);
   }, [words]);

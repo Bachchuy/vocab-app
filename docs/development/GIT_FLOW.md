@@ -1,6 +1,6 @@
 # Git Flow cho Vocab App
 
-Tài liệu này quy định cách tạo branch, commit và push cho project theo Git Flow.
+Tài liệu này quy định cách tạo branch, commit và push cho project theo Git Flow. Mục lục tài liệu và định hướng sản phẩm nằm tại [docs/README.md](../README.md) và [tầm nhìn sản phẩm](../product/PRODUCT_STRATEGY_VISION.md).
 
 ## 1. Vai trò của các branch
 

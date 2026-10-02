@@ -1,6 +1,6 @@
 # AI support trong Lexicon
 
-Tài liệu này ghi lại cách bật AI bằng API key cá nhân, luồng gợi ý từ hiện tại và cách mở rộng sang provider hoặc tác vụ AI khác. AI là tùy chọn: tra cứu, lưu từ và ôn tập vẫn hoạt động khi chưa cấu hình key.
+Tài liệu này ghi lại cách bật AI bằng API key cá nhân, luồng gợi ý từ hiện tại và cách mở rộng sang provider hoặc tác vụ AI khác. AI là tùy chọn: tra cứu, lưu từ và ôn tập vẫn hoạt động khi chưa cấu hình key. Xem [mục lục tài liệu](../README.md) để tìm các hướng dẫn khác và [gợi ý AI cho mục từ](WORD_SUGGESTIONS.md) để biết chi tiết trường dữ liệu.
 
 ## Hướng dẫn cho người dùng
 
