@@ -17,15 +17,15 @@ export class WordsService {
   }
 
   async create(dto: CreateWordDto): Promise<Word> {
-    const english = dto.english?.trim(); const meaning = dto.meaning?.trim();
-    if (!english || !meaning) throw new BadRequestException('english and meaning are required');
-    if (await this.wordsRepository.findByEnglish(english)) throw new ConflictException(`Word "${english}" already exists`);
+    const english = (dto.term ?? dto.english)?.trim(); const meaning = dto.meaning?.trim();
+    if (!english || !meaning) throw new BadRequestException('term and meaning are required');
+    if (await this.wordsRepository.findByEnglish(english)) throw new ConflictException(`Term "${english}" already exists`);
     return this.wordsRepository.create({ ...dto, english, meaning });
   }
 
   async update(id: number, dto: UpdateWordDto): Promise<Word> {
-    const english = dto.english?.trim(); const meaning = dto.meaning?.trim();
-    if (dto.english !== undefined && !english) throw new BadRequestException('english cannot be empty');
+    const english = (dto.term ?? dto.english)?.trim(); const meaning = dto.meaning?.trim();
+    if ((dto.term !== undefined || dto.english !== undefined) && !english) throw new BadRequestException('term cannot be empty');
     if (dto.meaning !== undefined && !meaning) throw new BadRequestException('meaning cannot be empty');
     if (english && await this.wordsRepository.findByEnglish(english, id)) throw new ConflictException(`Word "${english}" already exists`);
     const word = await this.wordsRepository.update(id, { ...dto, ...(english !== undefined && { english }), ...(meaning !== undefined && { meaning }) });

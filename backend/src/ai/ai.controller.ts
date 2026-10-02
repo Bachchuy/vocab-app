@@ -1,13 +1,13 @@
 import { Body, Controller, Post } from '@nestjs/common';
-import { SuggestWordDto } from './dto/suggest-word.dto';
-import { AiService } from './ai.service';
+import { SuggestWordDto } from './features/word-suggestions/suggest-word.dto';
+import { SuggestWordUseCase } from './features/word-suggestions/suggest-word.use-case';
 
 @Controller('ai')
 export class AiController {
-  constructor(private readonly aiService: AiService) {}
+  constructor(private readonly suggestWordUseCase: SuggestWordUseCase) {}
 
   @Post('suggest')
   suggestWord(@Body() dto: SuggestWordDto) {
-    return this.aiService.suggestWord(dto);
+    return this.suggestWordUseCase.execute(dto);
   }
 }

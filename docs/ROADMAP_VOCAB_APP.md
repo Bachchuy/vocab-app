@@ -1,5 +1,6 @@
-# ROADMAP XÂY VOCABULARY LEARNING APP
-## Vừa học IT — vừa code — vừa dùng AI làm mentor
+# LỘ TRÌNH XÂY DỰNG ỨNG DỤNG HỌC TỪ VỰNG
+
+## Vừa học công nghệ — vừa lập trình — vừa dùng AI làm người hướng dẫn
 
 ---
 
@@ -9,22 +10,22 @@ Xây một nền tảng học từ vựng đa ngôn ngữ, bắt đầu từ ti�
 
 Sản phẩm cuối hướng tới:
 
-- Vocabulary management
-- Flashcard
-- Quiz
-- Spaced repetition
-- Learning statistics
-- Authentication
-- AI vocabulary generation
-- AI quiz generation
-- AI explanation / tutor
-- Personalized learning
-- Semantic search / embeddings
-- Multi-language
-- Testing
+- Quản lý từ vựng
+- Thẻ ghi nhớ
+- Câu hỏi trắc nghiệm
+- Lặp lại ngắt quãng
+- Thống kê học tập
+- Xác thực người dùng
+- AI tạo nội dung từ vựng
+- AI tạo câu hỏi
+- AI giải thích / gia sư
+- Học cá nhân hóa
+- Tìm kiếm ngữ nghĩa / embedding
+- Đa ngôn ngữ
+- Kiểm thử
 - Docker
 - CI/CD
-- Deployment
+- Triển khai
 
 Mục tiêu nghề nghiệp của project:
 
@@ -67,42 +68,42 @@ Bạn: 80%
 AI: 20%
 ```
 
-AI đóng vai:
+AI đóng vai trò:
 
-- Teacher
-- Pair programmer
-- Debugger
-- Code reviewer
-- Architecture reviewer
-- Research assistant
+- Người dạy
+- Bạn lập trình cùng
+- Người hỗ trợ gỡ lỗi
+- Người xem xét mã nguồn
+- Người xem xét kiến trúc
+- Trợ lý nghiên cứu
 
 Không dùng AI theo kiểu:
 
 ```text
-"Build the entire app for me."
+"Hãy xây toàn bộ ứng dụng cho tôi."
 ```
 
 Mà dùng:
 
 ```text
-"Tôi đang làm X. Đây là code của tôi.
+"Tôi đang làm X. Đây là mã nguồn của tôi.
 Hãy chỉ ra vấn đề, giải thích nguyên nhân,
-và cho tôi hints trước khi đưa solution."
+đưa ra gợi ý trước khi đưa lời giải."
 ```
 
-## 1.3. Mỗi feature phải có Definition of Done
+## 1.3. Mỗi tính năng phải có tiêu chí hoàn thành
 
 ```text
-[ ] Hiểu requirement
-[ ] Hiểu concept liên quan
-[ ] Tự code được
-[ ] Có edge cases
-[ ] Có error handling nếu cần
+[ ] Hiểu yêu cầu
+[ ] Hiểu khái niệm liên quan
+[ ] Tự viết mã được
+[ ] Xử lý các trường hợp biên
+[ ] Có xử lý lỗi nếu cần
 [ ] TypeScript không có lỗi
-[ ] Test phù hợp
-[ ] AI review
+[ ] Có kiểm thử phù hợp
+[ ] AI xem xét
 [ ] Sửa các vấn đề quan trọng
-[ ] Git commit
+[ ] Commit Git
 [ ] Ghi lại bài học
 ```
 

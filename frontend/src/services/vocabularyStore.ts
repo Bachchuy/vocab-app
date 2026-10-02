@@ -1,4 +1,5 @@
 import Database from '@tauri-apps/plugin-sql';
+import { suggestWordWithAi } from '../ai/aiService';
 
 export type Word = {
   id: number;
@@ -11,19 +12,35 @@ export type Word = {
   lemma?: string;
   sourceLanguage?: string;
   explanationLanguage?: string;
+  cefrLevel?: string;
   partOfSpeech?: string;
+  register?: string;
+  frequency?: string;
   tags?: string[];
   dateAdded?: string;
   pronunciation: string;
+  pronunciationUS?: string;
+  pronunciationUK?: string;
+  syllables?: string;
+  stressPattern?: string;
+  etymology?: string;
+  usageNotes?: string;
   wordForms: WordForm[];
+  senses?: VocabularySense[];
   synonyms: string[];
   antonyms: string[];
   collocations: string[];
-  toeicContext: string;
+  grammarPatterns?: string[];
+  learningGoals?: LearningGoal[];
+  context: string;
+  /** @deprecated Kept only to read exports from older app versions. */
+  toeicContext?: string;
 };
 
 export type WordForm = { partOfSpeech: string; form: string; meaning: string };
-export type WordSuggestion = Pick<Word, 'meaning' | 'example' | 'partOfSpeech' | 'pronunciation' | 'wordForms' | 'synonyms' | 'antonyms' | 'collocations' | 'toeicContext'>;
+export type VocabularySense = { definition: string; translation: string; examples: string[]; usageNotes: string };
+export type LearningGoal = { name: string; level: string; notes: string };
+export type WordSuggestion = Pick<Word, 'meaning' | 'example' | 'cefrLevel' | 'partOfSpeech' | 'register' | 'frequency' | 'pronunciation' | 'pronunciationUS' | 'pronunciationUK' | 'syllables' | 'stressPattern' | 'wordForms' | 'senses' | 'synonyms' | 'antonyms' | 'collocations' | 'grammarPatterns' | 'context'>;
 
 export type WordInput = Omit<Word, 'id'>;
 export type ReviewState = { wordId: number; status: string; dueAt: string; lastReviewedAt?: string | null; reviewCount: number; correctCount: number; incorrectCount: number; intervalDays: number };
@@ -37,17 +54,20 @@ let databasePromise: Promise<Database> | undefined;
 async function database(): Promise<Database> {
   if (!databasePromise) {
     databasePromise = Database.load('sqlite:lexicon.sqlite').then(async (db) => {
-      await db.execute(`CREATE TABLE IF NOT EXISTS words (id INTEGER PRIMARY KEY AUTOINCREMENT, english TEXT NOT NULL, meaning TEXT NOT NULL, example TEXT NOT NULL DEFAULT '', category TEXT NOT NULL DEFAULT 'general', source TEXT NOT NULL DEFAULT '', notes TEXT NOT NULL DEFAULT '', lemma TEXT NOT NULL, sourceLanguage TEXT NOT NULL DEFAULT 'en', explanationLanguage TEXT NOT NULL DEFAULT 'vi', partOfSpeech TEXT NOT NULL DEFAULT '', tags TEXT NOT NULL DEFAULT '[]', dateAdded TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP, pronunciation TEXT NOT NULL DEFAULT '', wordForms TEXT NOT NULL DEFAULT '[]', synonyms TEXT NOT NULL DEFAULT '[]', antonyms TEXT NOT NULL DEFAULT '[]', collocations TEXT NOT NULL DEFAULT '[]', toeicContext TEXT NOT NULL DEFAULT '')`);
+      await db.execute(`CREATE TABLE IF NOT EXISTS words (id INTEGER PRIMARY KEY AUTOINCREMENT, english TEXT NOT NULL, meaning TEXT NOT NULL, example TEXT NOT NULL DEFAULT '', category TEXT NOT NULL DEFAULT 'general', source TEXT NOT NULL DEFAULT '', notes TEXT NOT NULL DEFAULT '', lemma TEXT NOT NULL, sourceLanguage TEXT NOT NULL DEFAULT 'en', explanationLanguage TEXT NOT NULL DEFAULT 'vi', cefrLevel TEXT NOT NULL DEFAULT '', partOfSpeech TEXT NOT NULL DEFAULT '', register TEXT NOT NULL DEFAULT '', frequency TEXT NOT NULL DEFAULT '', tags TEXT NOT NULL DEFAULT '[]', dateAdded TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP, pronunciation TEXT NOT NULL DEFAULT '', pronunciationUS TEXT NOT NULL DEFAULT '', pronunciationUK TEXT NOT NULL DEFAULT '', syllables TEXT NOT NULL DEFAULT '', stressPattern TEXT NOT NULL DEFAULT '', etymology TEXT NOT NULL DEFAULT '', usageNotes TEXT NOT NULL DEFAULT '', wordForms TEXT NOT NULL DEFAULT '[]', senses TEXT NOT NULL DEFAULT '[]', synonyms TEXT NOT NULL DEFAULT '[]', antonyms TEXT NOT NULL DEFAULT '[]', collocations TEXT NOT NULL DEFAULT '[]', grammarPatterns TEXT NOT NULL DEFAULT '[]', learningGoals TEXT NOT NULL DEFAULT '[]', context TEXT NOT NULL DEFAULT '')`);
       const columns = await db.select<{ name: string }[]>(`PRAGMA table_info(words)`);
       const existingColumns = new Set(columns.map((column) => column.name));
       const newColumns = [
         ['pronunciation', "TEXT NOT NULL DEFAULT ''"], ['wordForms', "TEXT NOT NULL DEFAULT '[]'"],
         ['synonyms', "TEXT NOT NULL DEFAULT '[]'"], ['antonyms', "TEXT NOT NULL DEFAULT '[]'"],
-        ['collocations', "TEXT NOT NULL DEFAULT '[]'"], ['toeicContext', "TEXT NOT NULL DEFAULT ''"],
+        ['cefrLevel', "TEXT NOT NULL DEFAULT ''"], ['register', "TEXT NOT NULL DEFAULT ''"], ['frequency', "TEXT NOT NULL DEFAULT ''"],
+        ['pronunciationUS', "TEXT NOT NULL DEFAULT ''"], ['pronunciationUK', "TEXT NOT NULL DEFAULT ''"], ['syllables', "TEXT NOT NULL DEFAULT ''"], ['stressPattern', "TEXT NOT NULL DEFAULT ''"], ['etymology', "TEXT NOT NULL DEFAULT ''"], ['usageNotes', "TEXT NOT NULL DEFAULT ''"],
+        ['wordForms', "TEXT NOT NULL DEFAULT '[]'"], ['senses', "TEXT NOT NULL DEFAULT '[]'"], ['synonyms', "TEXT NOT NULL DEFAULT '[]'"], ['antonyms', "TEXT NOT NULL DEFAULT '[]'"], ['collocations', "TEXT NOT NULL DEFAULT '[]'"], ['grammarPatterns', "TEXT NOT NULL DEFAULT '[]'"], ['learningGoals', "TEXT NOT NULL DEFAULT '[]'"], ['context', "TEXT NOT NULL DEFAULT ''"],
       ];
       for (const [name, definition] of newColumns) {
         if (!existingColumns.has(name)) await db.execute(`ALTER TABLE words ADD COLUMN ${name} ${definition}`);
       }
+      if (existingColumns.has('toeicContext') && !existingColumns.has('context')) await db.execute(`UPDATE words SET context = toeicContext`);
       await db.execute(`CREATE TABLE IF NOT EXISTS review_states (wordId INTEGER PRIMARY KEY, status TEXT NOT NULL DEFAULT 'new', dueAt TEXT NOT NULL, lastReviewedAt TEXT, reviewCount INTEGER NOT NULL DEFAULT 0, correctCount INTEGER NOT NULL DEFAULT 0, incorrectCount INTEGER NOT NULL DEFAULT 0, intervalDays INTEGER NOT NULL DEFAULT 0)`);
       await db.execute(`CREATE TABLE IF NOT EXISTS review_history (id INTEGER PRIMARY KEY AUTOINCREMENT, wordId INTEGER NOT NULL, rating TEXT NOT NULL, correct INTEGER NOT NULL, reviewedAt TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP, responseMs INTEGER)`);
       await db.execute(`CREATE UNIQUE INDEX IF NOT EXISTS words_english_lower ON words (lower(english))`);
@@ -65,16 +85,12 @@ async function database(): Promise<Database> {
 
 function parseWord(row: Record<string, unknown>): Word {
   const parseArray = <T,>(value: unknown, fallback: T[]): T[] => { try { const parsed = JSON.parse(String(value ?? '[]')); return Array.isArray(parsed) ? parsed as T[] : fallback; } catch { return fallback; } };
-  return { ...row, id: Number(row.id), english: String(row.english), meaning: String(row.meaning), example: String(row.example ?? ''), category: String(row.category ?? 'general'), source: String(row.source ?? ''), notes: String(row.notes ?? ''), tags: parseArray<string>(row.tags, []), dateAdded: String(row.dateAdded ?? ''), pronunciation: String(row.pronunciation ?? ''), wordForms: parseArray<WordForm>(row.wordForms, []), synonyms: parseArray<string>(row.synonyms, []), antonyms: parseArray<string>(row.antonyms, []), collocations: parseArray<string>(row.collocations, []), toeicContext: String(row.toeicContext ?? '') } as Word;
+  const context = String(row.context ?? row.toeicContext ?? '');
+  return { ...row, id: Number(row.id), english: String(row.english), meaning: String(row.meaning), example: String(row.example ?? ''), category: String(row.category ?? 'general'), source: String(row.source ?? ''), notes: String(row.notes ?? ''), cefrLevel: String(row.cefrLevel ?? ''), register: String(row.register ?? ''), frequency: String(row.frequency ?? ''), tags: parseArray<string>(row.tags, []), dateAdded: String(row.dateAdded ?? ''), pronunciation: String(row.pronunciation ?? ''), pronunciationUS: String(row.pronunciationUS ?? ''), pronunciationUK: String(row.pronunciationUK ?? ''), syllables: String(row.syllables ?? ''), stressPattern: String(row.stressPattern ?? ''), etymology: String(row.etymology ?? ''), usageNotes: String(row.usageNotes ?? ''), wordForms: parseArray<WordForm>(row.wordForms, []), senses: parseArray<VocabularySense>(row.senses, []), synonyms: parseArray<string>(row.synonyms, []), antonyms: parseArray<string>(row.antonyms, []), collocations: parseArray<string>(row.collocations, []), grammarPatterns: parseArray<string>(row.grammarPatterns, []), learningGoals: parseArray<LearningGoal>(row.learningGoals, []), context, toeicContext: context } as Word;
 }
 
-export async function suggestWord(english: string, meaning = '', source = ''): Promise<WordSuggestion> {
-  const response = await fetch(`${API}/ai/suggest`, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ english, meaning, source }) });
-  if (!response.ok) {
-    const error = await response.json().catch(() => ({})) as { message?: string };
-    throw new Error(error.message ?? `Gợi ý AI thất bại (HTTP ${response.status})`);
-  }
-  return response.json();
+export async function suggestWord(term: string, meaning = '', source = '', sourceLanguage = 'en', explanationLanguage = 'vi', learningGoal = ''): Promise<WordSuggestion> {
+  return suggestWordWithAi({ term, meaning, source, sourceLanguage, explanationLanguage, learningGoal });
 }
 
 export async function listWords(): Promise<Word[]> {
@@ -129,7 +145,7 @@ export async function importWordsFile(file: unknown): Promise<{ imported: number
       lemma: input.lemma, sourceLanguage: input.sourceLanguage, explanationLanguage: input.explanationLanguage,
       partOfSpeech: input.partOfSpeech, tags: input.tags, pronunciation: input.pronunciation,
       wordForms: input.wordForms, synonyms: input.synonyms, antonyms: input.antonyms,
-      collocations: input.collocations, toeicContext: input.toeicContext,
+      collocations: input.collocations, context: input.context ?? input.toeicContext,
     });
     spellings.add(spelling);
     imported += 1;
@@ -139,23 +155,66 @@ export async function importWordsFile(file: unknown): Promise<{ imported: number
 
 export async function saveWord(input: WordInput, id?: number): Promise<Word> {
   if (!isDesktop()) {
-    const response = await fetch(`${API}/words${id ? `/${id}` : ''}`, { method: id ? 'PATCH' : 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(input) });
-    if (!response.ok) throw new Error(`Save failed: ${response.status}`);
+    const response = await fetch(`${API}/words${id ? `/${id}` : ''}`, {
+      method: id ? 'PATCH' : 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(toApiWordPayload(input)),
+    });
+    if (!response.ok) {
+      const error = await response.json().catch(() => ({})) as { message?: string | string[] };
+      const message = Array.isArray(error.message) ? error.message.join('; ') : error.message;
+      throw new Error(message ? `Không thể lưu (HTTP ${response.status}): ${message}` : `Không thể lưu (HTTP ${response.status}).`);
+    }
     return response.json();
   }
   const db = await database();
-  const values = [input.english.trim(), input.meaning.trim(), input.example?.trim() ?? '', input.category?.trim() || 'general', input.source?.trim() ?? '', input.notes?.trim() ?? '', input.lemma?.trim() || input.english.trim(), input.sourceLanguage?.trim() || 'en', input.explanationLanguage?.trim() || 'vi', input.partOfSpeech?.trim() ?? '', JSON.stringify(input.tags ?? []), input.pronunciation?.trim() ?? '', JSON.stringify(input.wordForms ?? []), JSON.stringify(input.synonyms ?? []), JSON.stringify(input.antonyms ?? []), JSON.stringify(input.collocations ?? []), input.toeicContext?.trim() ?? ''];
+  const values = [input.english.trim(), input.meaning.trim(), input.example?.trim() ?? '', input.category?.trim() || 'general', input.source?.trim() ?? '', input.notes?.trim() ?? '', input.lemma?.trim() || input.english.trim(), input.sourceLanguage?.trim() || 'en', input.explanationLanguage?.trim() || 'vi', input.cefrLevel?.trim() ?? '', input.partOfSpeech?.trim() ?? '', input.register?.trim() ?? '', input.frequency?.trim() ?? '', JSON.stringify(input.tags ?? []), input.pronunciation?.trim() ?? '', input.pronunciationUS?.trim() ?? '', input.pronunciationUK?.trim() ?? '', input.syllables?.trim() ?? '', input.stressPattern?.trim() ?? '', input.etymology?.trim() ?? '', input.usageNotes?.trim() ?? '', JSON.stringify(input.wordForms ?? []), JSON.stringify(input.senses ?? []), JSON.stringify(input.synonyms ?? []), JSON.stringify(input.antonyms ?? []), JSON.stringify(input.collocations ?? []), JSON.stringify(input.grammarPatterns ?? []), JSON.stringify(input.learningGoals ?? []), (input.context ?? input.toeicContext)?.trim() ?? ''];
   let savedId = id;
   if (id) {
-    await db.execute(`UPDATE words SET english=?, meaning=?, example=?, category=?, source=?, notes=?, lemma=?, sourceLanguage=?, explanationLanguage=?, partOfSpeech=?, tags=?, pronunciation=?, wordForms=?, synonyms=?, antonyms=?, collocations=?, toeicContext=? WHERE id=?`, [...values, id]);
+    await db.execute(`UPDATE words SET english=?, meaning=?, example=?, category=?, source=?, notes=?, lemma=?, sourceLanguage=?, explanationLanguage=?, cefrLevel=?, partOfSpeech=?, register=?, frequency=?, tags=?, pronunciation=?, pronunciationUS=?, pronunciationUK=?, syllables=?, stressPattern=?, etymology=?, usageNotes=?, wordForms=?, senses=?, synonyms=?, antonyms=?, collocations=?, grammarPatterns=?, learningGoals=?, context=? WHERE id=?`, [...values, id]);
   } else {
-    const result = await db.execute(`INSERT INTO words (english, meaning, example, category, source, notes, lemma, sourceLanguage, explanationLanguage, partOfSpeech, tags, pronunciation, wordForms, synonyms, antonyms, collocations, toeicContext) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`, values);
+    const result = await db.execute(`INSERT INTO words (english, meaning, example, category, source, notes, lemma, sourceLanguage, explanationLanguage, cefrLevel, partOfSpeech, register, frequency, tags, pronunciation, pronunciationUS, pronunciationUK, syllables, stressPattern, etymology, usageNotes, wordForms, senses, synonyms, antonyms, collocations, grammarPatterns, learningGoals, context) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`, values);
     savedId = result.lastInsertId;
   }
   if (savedId === undefined) throw new Error('The database did not return the saved word id');
   const rows = await db.select<Record<string, unknown>[]>(`SELECT * FROM words WHERE id = ?`, [savedId]);
   if (!rows[0]) throw new Error(`Saved word ${savedId} could not be loaded`);
   return parseWord(rows[0]);
+}
+
+/** Send only fields accepted by the backend DTO; UI and legacy fields never cross the API boundary. */
+function toApiWordPayload(input: WordInput) {
+  return {
+    english: input.english,
+    meaning: input.meaning,
+    example: input.example,
+    category: input.category,
+    source: input.source,
+    notes: input.notes,
+    lemma: input.lemma,
+    sourceLanguage: input.sourceLanguage,
+    explanationLanguage: input.explanationLanguage,
+    cefrLevel: input.cefrLevel,
+    partOfSpeech: input.partOfSpeech,
+    register: input.register,
+    frequency: input.frequency,
+    tags: input.tags,
+    pronunciation: input.pronunciation,
+    pronunciationUS: input.pronunciationUS,
+    pronunciationUK: input.pronunciationUK,
+    syllables: input.syllables,
+    stressPattern: input.stressPattern,
+    etymology: input.etymology,
+    usageNotes: input.usageNotes,
+    wordForms: input.wordForms,
+    senses: input.senses,
+    synonyms: input.synonyms,
+    antonyms: input.antonyms,
+    collocations: input.collocations,
+    grammarPatterns: input.grammarPatterns,
+    learningGoals: input.learningGoals,
+    context: input.context ?? input.toeicContext,
+  };
 }
 
 export async function deleteWord(id: number): Promise<void> {
