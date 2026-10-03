@@ -24,6 +24,7 @@ export class Word {
   get term(): string { return this.props.term; }
   get english(): string { return this.props.term; }
   get meaning(): string { return this.props.meaning; }
+  get detailedExplanation(): string { return this.props.detailedExplanation; }
   get example(): string { return this.props.example; }
   get category(): string { return this.props.category; }
   get source(): string { return this.props.source; }

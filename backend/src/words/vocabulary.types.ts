@@ -24,6 +24,7 @@ export type WordProps = {
   id: number;
   term: string;
   meaning: string;
+  detailedExplanation: string;
   example: string;
   category: string;
   source: string;

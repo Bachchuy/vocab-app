@@ -11,6 +11,7 @@ model Word {
   id                    Int      @id @default(autoincrement())
   english               String
   meaning               String
+  detailedExplanation   String   @default("")
   example               String   @default("")
   category              String   @default("general")
   source                String   @default("")

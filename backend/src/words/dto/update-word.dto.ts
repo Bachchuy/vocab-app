@@ -27,6 +27,9 @@ export class UpdateWordDto {
   @MaxLength(200)
   meaning?: string;
 
+  @IsOptional() @IsString() @MaxLength(1200)
+  detailedExplanation?: string;
+
   // Có thể cập nhật ví dụ nhưng không bắt buộc phải gửi field này.
   @IsOptional()
   @IsString()

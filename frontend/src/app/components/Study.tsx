@@ -76,6 +76,7 @@ export function Study({
             <div>
               <small>Meaning</small>
               <strong>{word.meaning}</strong>
+              {word.detailedExplanation && <details className="study-explanation" onClick={(event) => event.stopPropagation()}><summary>Giải nghĩa chi tiết</summary><p>{word.detailedExplanation}</p></details>}
               <p>{word.example || "Bạn chưa thêm ví dụ cho từ này."}</p>
             </div>
           </div>
