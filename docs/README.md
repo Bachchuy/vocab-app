@@ -13,6 +13,8 @@
 
 1. [Khởi động nhanh V1](desktop/V1_QUICKSTART.txt) — chạy web, desktop và tạo installer.
 2. [Hướng dẫn desktop Windows](desktop/LEXICON_WINDOWS_DESKTOP_GUIDE.txt) — kiến trúc, trạng thái hiện tại, dữ liệu, yêu cầu máy build và giới hạn.
+3. [Hướng dẫn cập nhật installer](desktop/INSTALLER_UPDATE_GUIDE.md) — quy tắc tạo bản mới và xử lý nâng cấp NSIS.
+4. [Nhật ký lỗi installer](desktop/INSTALLER_ERRORS.txt) — lỗi kill-to-install và các vòng điều tra/sửa.
 
 ### Tôi muốn làm việc với AI
 
@@ -23,6 +25,7 @@
 
 1. [Lộ trình phát triển và học tập](development/ROADMAP_VOCAB_APP.md) — curriculum dài hạn, các mốc và Definition of Done.
 2. [Git Flow](development/GIT_FLOW.md) — branch, commit, build và release.
+3. [Ghi chú phát hành 1.1.1](desktop/RELEASE_v1.1.1.md) — bản sửa luồng cập nhật NSIS.
 
 ## Tài liệu nào là nguồn hiện trạng?
 

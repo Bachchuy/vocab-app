@@ -1,0 +1,50 @@
+LEXICON WINDOWS INSTALLER - ERROR LOG
+====================================
+
+Last updated: 2026-10-03 (Asia/Saigon)
+Affected release: 1.1.0
+Fix release: 1.1.1
+
+REPORTED ERROR
+--------------
+During uninstall/update, Windows displayed:
+
+  Uninstallation Aborted
+  Uninstall was not completed successfully.
+  Failed to kill Lexicon. Please close it first then try again
+
+The dialog title was "Lexicon Uninstall". The user reports that the failure
+continues after installing the previous attempted fix.
+
+INVESTIGATION AND FIX ITERATIONS
+-------------------------------
+1. The 1.1.0 installer hook was changed to check only the Lexicon.exe located
+   in the registered installation directory, request a normal close, and never
+   force-terminate a process. The recorded close-hook log showed no Lexicon
+   process in that directory, so this hook did not explain the uninstall dialog.
+
+2. Inspection of the generated NSIS installer showed a separate path: the
+   reinstall/upgrade page could execute the uninstaller from the already
+   installed release before the new setup's pre-install hook ran. That old
+   uninstaller contains the "Failed to kill Lexicon" check. Updating the hook
+   in a newly downloaded installer cannot change an uninstaller already on disk.
+
+3. Release 1.1.1 changes the NSIS setup flow for existing NSIS installations:
+   it reads the registered install directory and installs over that location,
+   skipping the old uninstaller's maintenance page. The new setup's normal
+   close hook then handles an open app. It does not force-stop Lexicon.
+
+VERIFICATION STATUS
+-------------------
+The source fix, frontend build, NSIS packaging, and generated-script check have
+completed. Artifact path and SHA-256 are recorded in RELEASE_v1.1.1.md. A
+successful update on the affected user's Windows installation must still be
+confirmed after they run the 1.1.1 setup directly; do not uninstall 1.1.0 first.
+
+If the new setup still stops, keep the application data folder intact and
+provide the exact dialog text plus the latest file below:
+
+  %TEMP%\Lexicon-installer-close.log
+
+That log covers the new setup's close-app hook. It does not record behavior of
+an old uninstaller that was launched before the new setup starts.
