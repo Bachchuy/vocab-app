@@ -26,7 +26,7 @@ TRẠNG THÁI KIẾN TRÚC
 - Browser: NestJS + Prisma + SQLite qua HTTP.
 - Dữ liệu desktop và browser hiện chưa tự động đồng bộ.
 - AI tùy chọn, dùng API key Gemini do người dùng tự cấu hình.
-- Installer NSIS 1.0.0 đã build trên máy phát triển; chưa ký số và chưa được kiểm tra trên máy Windows sạch.
+- Installer NSIS 1.1.0 đã build trên máy phát triển; chưa ký số và chưa được kiểm tra trên máy Windows sạch.
 
 LỆNH CHẠY NHANH
 ---------------

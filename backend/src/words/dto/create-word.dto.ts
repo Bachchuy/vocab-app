@@ -25,6 +25,9 @@ export class CreateWordDto {
   @MaxLength(200)
   meaning: string;
 
+  @IsOptional() @IsString() @MaxLength(1200)
+  detailedExplanation?: string;
+
   // Ví dụ là tùy chọn nhưng nếu có thì phải là chuỗi ngắn hơn 500 ký tự.
   @IsOptional()
   @IsString()

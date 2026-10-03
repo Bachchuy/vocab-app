@@ -19,6 +19,7 @@ export type Rating = ReviewRating;
 export const blankForm: FormState = {
   english: "",
   meaning: "",
+  detailedExplanation: "",
   example: "",
   category: "general",
   source: "",

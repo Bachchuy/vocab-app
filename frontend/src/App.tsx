@@ -18,7 +18,9 @@ import { Sidebar } from "./app/components/Sidebar";
 import { DetailBlock } from "./app/components/DetailBlock";
 import { Study } from "./app/components/Study";
 import { AiSettingsPage } from "./app/screens/AiSettingsPage";
+import { DataManagementPage } from "./app/screens/DataManagementPage";
 import { blankForm, type FormState, type Rating } from "./app/types";
+import { exportWordsSpreadsheet } from "./services/wordExport";
 
 const blank = blankForm;
 type StudyMode = "due" | "extra" | "weak";
@@ -26,7 +28,7 @@ type StudyMode = "due" | "extra" | "weak";
 export default function App() {
   const [words, setWords] = useState<Word[]>([]);
   const [screen, setScreen] = useState<
-    "library" | "study" | "dashboard" | "settings"
+    "library" | "study" | "dashboard" | "settings" | "data"
   >("library");
   const [selected, setSelected] = useState<Word | null>(null);
   const [query, setQuery] = useState("");
@@ -263,6 +265,14 @@ export default function App() {
       setNotice("Không thể xuất danh sách từ.");
     }
   };
+  const exportSpreadsheet = async (selectedWords: Word[]) => {
+    try {
+      await exportWordsSpreadsheet(selectedWords);
+      setNotice(`Đã xuất ${selectedWords.length} từ sang Excel.`);
+    } catch (error) {
+      setNotice(`Không thể xuất file Excel: ${errorText(error)}`);
+    }
+  };
   const requestSuggestion = async () => {
     if (!form.english.trim()) {
       setNotice("Nhập mục từ trước khi yêu cầu AI gợi ý.");
@@ -318,6 +328,10 @@ export default function App() {
           setScreen("settings");
           setSelected(null);
         }}
+        onData={() => {
+          setScreen("data");
+          setSelected(null);
+        }}
       />
       <main className="main-content">
         <header>
@@ -331,6 +345,8 @@ export default function App() {
                   ? "Tổng quan học tập"
                   : screen === "settings"
                     ? "Cài đặt AI"
+                    : screen === "data"
+                      ? "Dữ liệu từ vựng"
                     : "Thư viện từ"}
           </span>
           <span className="account-chip">
@@ -368,6 +384,14 @@ export default function App() {
             onStudy={() => openStudy("due")}
             onLibrary={() => setScreen("library")}
           />
+        ) : screen === "data" ? (
+          <DataManagementPage
+            words={words}
+            loading={loading}
+            onImport={importFile}
+            onExportJson={exportFile}
+            onExportSpreadsheet={exportSpreadsheet}
+          />
         ) : selected ? (
           <WordDetail
             word={selected}
@@ -389,8 +413,6 @@ export default function App() {
             onCategory={setCategory}
             onSort={setSort}
             onAdd={openAdd}
-            onExport={exportFile}
-            onImport={importFile}
             onOpen={setSelected}
             onRetry={loadWords}
             onEdit={openEdit}
@@ -645,11 +667,12 @@ function WordForm({
           </div>
           <div className="form-two-col">
             <Field
-              label="Nghĩa tiếng Việt *"
+              label="Nghĩa tương đương (2–3 từ) *"
               value={form.meaning}
-              placeholder="đạt được, thu nhận"
+              placeholder="tiến bộ, phát triển"
               onChange={(value) => onUpdate("meaning", value)}
             />
+            <label className="field-wide">Giải nghĩa chi tiết<textarea rows={4} value={form.detailedExplanation ?? ""} placeholder="Giải thích dài hơn về nghĩa và cách dùng của từ…" onChange={(event) => onUpdate("detailedExplanation", event.target.value)} /></label>
             <Field
               label="Từ loại chính"
               value={form.partOfSpeech}
@@ -790,8 +813,6 @@ function Library({
   onCategory,
   onSort,
   onAdd,
-  onExport,
-  onImport,
   onOpen,
   onRetry,
   onEdit,
@@ -808,8 +829,6 @@ function Library({
   onCategory: (value: string) => void;
   onSort: (value: string) => void;
   onAdd: () => void;
-  onExport: () => void;
-  onImport: (file: File) => void;
   onOpen: (word: Word) => void;
   onRetry: () => void;
   onEdit: (word: Word) => void;
@@ -826,21 +845,6 @@ function Library({
           </p>
         </div>
         <div className="dictionary-actions">
-          <button className="secondary-button" onClick={onExport}>
-            Xuất JSON
-          </button>
-          <label className="secondary-button import-button">
-            Nhập JSON
-            <input
-              type="file"
-              accept="application/json,.json"
-              onChange={(event) => {
-                const file = event.currentTarget.files?.[0];
-                if (file) onImport(file);
-                event.currentTarget.value = "";
-              }}
-            />
-          </label>
           <button className="primary" onClick={onAdd}>
             ＋ Lưu từ mới
           </button>
@@ -976,6 +980,7 @@ function WordDetail({
           <p className="eyebrow">TOEIC vocabulary</p>
           <h1>{word.english}</h1>
           <p className="detail-meaning">{word.meaning}</p>
+          {word.detailedExplanation && <p className="detail-explanation">{word.detailedExplanation}</p>}
           <div className="word-meta">
             <span>{word.partOfSpeech || "Chưa rõ từ loại"}</span>
             {word.pronunciation && <span>{word.pronunciation}</span>}

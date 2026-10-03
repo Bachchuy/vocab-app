@@ -6,6 +6,7 @@ type SidebarProps = {
   onStudy: () => void;
   onDashboard: () => void;
   onSettings: () => void;
+  onData: () => void;
 };
 
 export function Sidebar({
@@ -16,6 +17,7 @@ export function Sidebar({
   onStudy,
   onDashboard,
   onSettings,
+  onData,
 }: SidebarProps) {
   return (
     <aside className="sidebar">
@@ -55,6 +57,13 @@ export function Sidebar({
           onClick={onSettings}
         >
           ⚙ Cài đặt AI
+        </button>
+        <p>Dữ liệu</p>
+        <button
+          className={screen === "data" ? "active" : ""}
+          onClick={onData}
+        >
+          ⇄ Quản lý dữ liệu
         </button>
       </nav>
       <div className="sidebar-footer">

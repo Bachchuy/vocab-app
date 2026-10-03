@@ -6,7 +6,9 @@ Các điểm vào và nhóm file hiện tại:
 - main.tsx: khởi động React.
 - App.tsx: state và điều phối màn hình chính.
 - app/: component, screen, kiểu form và xử lý lỗi giao diện.
+- app/screens/DataManagementPage.tsx: chọn mục từ và nhập/xuất JSON, Excel.
 - services/vocabularyStore.ts: giao tiếp dữ liệu; chọn SQLite Tauri trên desktop hoặc HTTP khi chạy browser.
+- services/wordExport.ts: ánh xạ Word thành các cột trong workbook XLSX.
 - ai/: hợp đồng provider, cài đặt key, Gemini adapter và use case gợi ý từ.
 - index.css: style toàn cục.
 

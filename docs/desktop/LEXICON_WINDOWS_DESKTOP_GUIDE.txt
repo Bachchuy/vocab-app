@@ -41,7 +41,7 @@ Những phần đã hoạt động
 
 Hạn chế quan trọng hiện tại
 ---------------------------
-Vỏ Tauri, adapter lưu trữ và bộ cài NSIS phiên bản 1.0.0 đã được build trên máy phát triển. Installer hiện chưa được ký số; Windows có thể cảnh báo nhà phát hành chưa xác định. Việc cài, lưu dữ liệu qua nâng cấp và chạy lần đầu trên máy Windows sạch vẫn cần kiểm tra.
+Vỏ Tauri, adapter lưu trữ và bộ cài NSIS phiên bản 1.1.0 đã được build trên máy phát triển. Installer hiện chưa được ký số; Windows có thể cảnh báo nhà phát hành chưa xác định. Việc cài, lưu dữ liệu qua nâng cấp và chạy lần đầu trên máy Windows sạch vẫn cần kiểm tra.
 
 Chế độ phát triển web tiếp tục dùng HTTP NestJS. Khi phát triển web, chạy backend riêng:
 

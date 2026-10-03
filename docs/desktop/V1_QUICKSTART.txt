@@ -19,7 +19,9 @@ V1 có
 - Mở trang chi tiết của một mục từ.
 - Ôn từ đã lưu với bộ lập lịch lặp lại ngắt quãng đơn giản.
 - Lưu trạng thái và lịch sử ôn trong SQLite.
-- Nhập và xuất mục từ dưới dạng file JSON Lexicon.
+- Nhập và xuất bản sao lưu mục từ dưới dạng file JSON Lexicon.
+- Chọn từng mục từ để xuất các trường từ vựng thành bảng tính Excel `.xlsx`.
+- Mở **Quản lý dữ liệu** trên thanh bên để nhập/xuất JSON hoặc tạo bảng tính; JSON giữ định dạng Lexicon, Excel tiện xem và lọc.
 - Dùng cùng REST API từ frontend React.
 
 Yêu cầu
@@ -61,7 +63,7 @@ Trong thư mục frontend, chạy:
 
 Bộ cài NSIS được tạo tại:
 
-  frontend\src-tauri\target\release\bundle\nsis\Lexicon_1.0.0_x64-setup.exe
+  frontend\src-tauri\target\release\bundle\nsis\Lexicon_1.1.0_x64-setup.exe
 
 Ứng dụng desktop lưu từ vựng trong SQLite cục bộ riêng. Hiện chưa đồng bộ với cơ sở dữ liệu browser/backend. Chuyển đổi JSON mới chỉ nhập/xuất mục từ; lịch ôn vẫn nằm riêng trong cơ sở dữ liệu của từng ứng dụng.
 
@@ -129,4 +131,4 @@ Dành cho trợ lý AI về sau
   docs\desktop\LEXICON_WINDOWS_DESKTOP_GUIDE.txt
   docs\development\ROADMAP_VOCAB_APP.md
 
-Không viết lại dự án. Giữ V1 hoạt động trong khi thêm từng mốc một. Sau thay đổi, chạy build frontend và backend. Desktop dùng SQLite cục bộ; browser dùng backend NestJS/Prisma và hiện chưa đồng bộ với desktop. Có thể tạo lại bộ cài NSIS bằng `npm run desktop:installer` trong thư mục frontend. Bộ cài 1.0.0 đã được tạo trên máy phát triển, nhưng cài đặt, lưu dữ liệu sau cập nhật và khởi chạy trên máy Windows sạch vẫn cần kiểm tra trước khi phát hành.
+Không viết lại dự án. Giữ V1 hoạt động trong khi thêm từng mốc một. Sau thay đổi, chạy build frontend và backend. Desktop dùng SQLite cục bộ; browser dùng backend NestJS/Prisma và hiện chưa đồng bộ với desktop. Có thể tạo lại bộ cài NSIS bằng `npm run desktop:installer` trong thư mục frontend. Xem ghi chú [phát hành 1.1.0](RELEASE_v1.1.0.md) để biết thay đổi và trạng thái kiểm tra.
