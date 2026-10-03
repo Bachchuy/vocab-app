@@ -1,6 +1,8 @@
 param(
   [Parameter(Mandatory = $true)]
   [string] $InstallDirectory,
+  [Parameter(Mandatory = $true)]
+  [string] $ExecutableName,
   [switch] $Silent,
   [switch] $Elevated,
   [switch] $Confirmed
@@ -11,7 +13,7 @@ $logPath = Join-Path $env:TEMP 'Lexicon-installer-close.log'
 
 function Start-ElevatedClose {
   $arguments = '-NoLogo -NoProfile -STA -ExecutionPolicy Bypass -File "' + $PSCommandPath +
-    '" -InstallDirectory "' + $InstallDirectory + '" -Elevated -Confirmed'
+    '" -InstallDirectory "' + $InstallDirectory + '" -ExecutableName "' + $ExecutableName + '" -Elevated -Confirmed'
   if ($Silent) {
     $arguments += ' -Silent'
   }
@@ -21,39 +23,39 @@ function Start-ElevatedClose {
 
 try {
   $installPath = [IO.Path]::GetFullPath($InstallDirectory).TrimEnd('\') + '\'
-  Set-Content -LiteralPath $logPath -Value "Install directory: $installPath" -Encoding UTF8
+  $executablePath = [IO.Path]::GetFullPath((Join-Path $installPath $ExecutableName))
+  Set-Content -LiteralPath $logPath -Value "Install directory: $installPath`r`nExecutable path: $executablePath" -Encoding UTF8
 
-  # Use executable names to find candidate PIDs, then verify each process path
-  # before closing it so another program with a generic name is never stopped.
-  $executableNames = @(
-    Get-ChildItem -LiteralPath $installPath -Filter '*.exe' -File -ErrorAction Stop |
-      ForEach-Object { $_.BaseName } |
-      Select-Object -Unique
-  )
-  if ($executableNames.Count -eq 0) {
-    throw "No executable files found in install directory: $installPath"
+  # A fresh install has no executable to stop. During updates/uninstalls only
+  # the exact Lexicon executable is relevant; exclude uninstall.exe and setup.
+  if (-not (Test-Path -LiteralPath $executablePath -PathType Leaf)) {
+    Add-Content -LiteralPath $logPath -Value 'No existing Lexicon executable was found.'
+    exit 0
   }
 
   $candidateProcesses = @(
-    Get-Process -Name $executableNames -ErrorAction SilentlyContinue
+    Get-Process -Name ([IO.Path]::GetFileNameWithoutExtension($executablePath)) -ErrorAction SilentlyContinue
   )
   $matchingProcesses = @(
     $candidateProcesses | Where-Object {
       try {
-        $_.Path -and [IO.Path]::GetFullPath($_.Path).StartsWith(
-          $installPath,
-          [StringComparison]::OrdinalIgnoreCase
-        )
+        $_.Path -and [StringComparer]::OrdinalIgnoreCase.Equals([IO.Path]::GetFullPath($_.Path), $executablePath)
       } catch {
         $false
       }
     }
   )
+  $unresolvedProcesses = @(
+    $candidateProcesses | Where-Object {
+      try { -not $_.Path } catch { $true }
+    }
+  )
 
   Add-Content -LiteralPath $logPath -Value "Candidate process IDs: $(($candidateProcesses.Id) -join ', ')"
   Add-Content -LiteralPath $logPath -Value "Verified install-path process IDs: $(($matchingProcesses.Id) -join ', ')"
+  Add-Content -LiteralPath $logPath -Value "Unresolved process IDs: $(($unresolvedProcesses.Id) -join ', ')"
 
-  if ($matchingProcesses.Count -eq 0 -and $candidateProcesses.Count -gt 0) {
+  if ($matchingProcesses.Count -eq 0 -and $unresolvedProcesses.Count -gt 0) {
     if ($Elevated) {
       throw 'A candidate process exists, but Windows did not expose its executable path even when elevated.'
     }
@@ -100,17 +102,12 @@ try {
         continue
       }
 
-      Add-Content -LiteralPath $logPath -Value "Closing PID $($process.Id) ($($process.Path))."
-      # Give Tauri time to close normally so pending edits and SQLite writes can finish.
-      if (-not $process.CloseMainWindow() -or -not $process.WaitForExit(8000)) {
-        $process.Refresh()
-        if (-not $process.HasExited) {
-          Add-Content -LiteralPath $logPath -Value "Force stopping PID $($process.Id)."
-          $process.Kill()
-          if (-not $process.WaitForExit(5000)) {
-            throw "Process $($process.Id) did not exit after the close request."
-          }
-        }
+      Add-Content -LiteralPath $logPath -Value "Requesting normal close for PID $($process.Id) ($($process.Path))."
+      if (-not $process.CloseMainWindow()) {
+        throw "Process $($process.Id) did not accept a normal close request. Close Lexicon manually and retry."
+      }
+      if (-not $process.WaitForExit(20000)) {
+        throw "Process $($process.Id) did not close within 20 seconds. Close Lexicon manually and retry."
       }
     } catch {
       $accessDenied = $_.Exception -is [UnauthorizedAccessException] -or
