@@ -217,6 +217,19 @@ Function PageReinstall
   ReadRegStr $R1 SHCTX "${UNINSTKEY}" "UninstallString"
   ${IfThen} "$R0$R1" == "" ${|} Abort ${|}
 
+  ; Install NSIS-managed updates over the existing files. The installed
+  ; uninstaller may predate this setup and fail before the new install hook runs.
+  ; Keep its registered location so the update replaces the right installation.
+  ${If} $WixMode = 0
+    ReadRegStr $R4 SHCTX "${MANUPRODUCTKEY}" ""
+    ${If} $R4 == ""
+      MessageBox MB_ICONSTOP|MB_OK "Lexicon is already installed, but its install location could not be read. Setup has stopped to protect the existing installation."
+      Quit
+    ${EndIf}
+    StrCpy $INSTDIR $R4
+    Abort
+  ${EndIf}
+
   ; Compare this installar version with the existing installation
   ; and modify the messages presented to the user accordingly
   compare_version:
@@ -774,8 +787,6 @@ Section Uninstall
   !ifmacrodef NSIS_HOOK_PREUNINSTALL
     !insertmacro NSIS_HOOK_PREUNINSTALL
   !endif
-
-  !insertmacro CheckIfAppIsRunning "$INSTDIR\${MAINBINARYNAME}.exe" "${PRODUCTNAME}"
 
   ; Delete the app directory and its content from disk
   ; Copy main executable
